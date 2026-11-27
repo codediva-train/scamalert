@@ -4,7 +4,7 @@ import type { Category, CheckResult } from '@/lib/scam'
 import LiveListen from './LiveListen'
 import Icon from './Icon'
 import TypesGallery from './TypesGallery'
-import { CASES, NOT_A_CASE, OTHER_SAMPLES, caseImage } from '@/lib/samples'
+import { C2PA_SAMPLES, CASES, NOT_A_CASE, OTHER_SAMPLES, SCREEN_SAMPLES, caseImage } from '@/lib/samples'
 import { readC2pa, type C2paInfo } from '@/lib/c2pa'
 
 const ERRORS: Record<string, string> = {
@@ -347,6 +347,23 @@ export default function Checker({ initialText }: { initialText: string }) {
           onChange={(e) => uploadAudio(e.target.files?.[0])}
         />
         <input ref={imageRef} type="file" accept="image/*" hidden onChange={(e) => uploadImage(e.target.files?.[0])} />
+
+        {/* ภาพหน้าจอตัวอย่าง แตะแล้วตรวจเหมือนอัปโหลดเอง ไม่ต้องหาไฟล์ในเครื่อง */}
+        <div className="shots" role="list" aria-label="ภาพหน้าจอตัวอย่าง">
+          {[...SCREEN_SAMPLES, ...C2PA_SAMPLES].map((s) => (
+            <button
+              key={s.src}
+              type="button"
+              role="listitem"
+              className="shot"
+              onClick={() => pickSampleFile(s.src, 'image')}
+              disabled={!!busy}
+            >
+              <img src={s.src} alt="" loading="lazy" />
+              <small>{s.label}</small>
+            </button>
+          ))}
+        </div>
 
         <p className="fine">
           AI อาจผิดได้ · ไม่เก็บข้อความหรือเสียงที่ตรวจ ·{' '}
