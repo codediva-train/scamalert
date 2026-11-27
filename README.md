@@ -75,7 +75,7 @@ flowchart LR
 5. กลับไปที่ Terminal พิมพ์ `npm run dev` → แอปเปิดในแท็บใหม่ (หรือดูแท็บ **Ports** → พอร์ต 3000)
 
 > [!TIP]
-> ไม่รู้จะลองอะไร? แตะชิป **📚 ตัวอย่างทั้งหมด** ในแอป — มีข้อความครบ 14 ประเภทคดี, ภาพหน้าจอโซเชียลจำลอง 6 แบบ และคลิปเสียงโทรหลอก 5 คลิป (เสียง AI)
+> ไม่รู้จะลองอะไร? แตะชิป **📚 ตัวอย่างทั้งหมด** ในแอป — มีข้อความครบ 14 ประเภทคดี, ภาพหน้าจอโซเชียลจำลอง 6 แบบ และคลิปเสียงโทรหลอก 5 คลิป (เสียง AI) · ภาพหน้าจอแตะจากแถบใต้ปุ่ม **แคปหน้าจอ** ได้ทันที ([ดูภาพทั้งหมด](#-ภาพหน้าจอตัวอย่าง-ไว้ลองอัปโหลด))
 
 ---
 
@@ -237,6 +237,36 @@ webapp/
 <td align="center"><img src="webapp/public/img/types/13.webp" width="100%"><br><b>13 · สินทรัพย์ดิจิทัล</b><br><sub>2,073</sub></td>
 <td align="center"><img src="webapp/public/img/types/14.webp" width="100%"><br><b>14 · Ransomware</b><br><sub>115</sub></td>
 <td colspan="2" align="center">📞 <b>โดนหลอกแล้ว?</b><br>โทร <b>1441</b> สายด่วนตำรวจไซเบอร์<br>แจ้งความที่ <a href="https://thaipoliceonline.go.th">thaipoliceonline.go.th</a></td>
+</tr>
+</table>
+
+---
+
+## 📸 ภาพหน้าจอตัวอย่าง ไว้ลองอัปโหลด
+
+หน้าจอจำลองจากแชต โพสต์ คลิปสั้น และ SMS ที่มิจฉาชีพใช้ (แต่งขึ้นทั้งหมด ไม่ใช่หน้าตาแอปจริง)
+ในแอปแตะภาพในแถบใต้ปุ่ม **แคปหน้าจอ** ได้เลย หรือคลิกภาพด้านล่าง → บันทึกลงเครื่อง → อัปโหลดผ่านปุ่ม **📸 แคปหน้าจอ**
+
+<table>
+<tr>
+<td align="center" width="33%"><a href="webapp/public/samples/screens/01-chat-line.webp"><img src="webapp/public/samples/screens/01-chat-line.webp" width="100%"></a><br><b>แชตงานกดไลก์</b><br><sub>แชต · โอนเงินเพื่อทำงาน</sub></td>
+<td align="center" width="33%"><a href="webapp/public/samples/screens/02-post-facebook.webp"><img src="webapp/public/samples/screens/02-post-facebook.webp" width="100%"></a><br><b>โฆษณาลงทุน</b><br><sub>โพสต์โซเชียล · หลอกลงทุน</sub></td>
+<td align="center" width="33%"><a href="webapp/public/samples/screens/03-video-crypto.webp"><img src="webapp/public/samples/screens/03-video-crypto.webp" width="100%"></a><br><b>คลิปคริปโตรวยไว</b><br><sub>คลิปสั้น · สินทรัพย์ดิจิทัล</sub></td>
+</tr>
+<tr>
+<td align="center"><a href="webapp/public/samples/screens/04-sms-parcel.webp"><img src="webapp/public/samples/screens/04-sms-parcel.webp" width="100%"></a><br><b>SMS พัสดุ/ธนาคาร</b><br><sub>SMS · ลิงก์หลอกกรอกข้อมูล</sub></td>
+<td align="center"><a href="webapp/public/samples/screens/05-market-iphone.webp"><img src="webapp/public/samples/screens/05-market-iphone.webp" width="100%"></a><br><b>ขายไอโฟนมัดจำ</b><br><sub>กลุ่มซื้อขาย · ซื้อขายสินค้า</sub></td>
+<td align="center"><a href="webapp/public/samples/screens/06-chat-romance.webp"><img src="webapp/public/samples/screens/06-chat-romance.webp" width="100%"></a><br><b>หลอกให้รัก</b><br><sub>แชต · หลอกให้รักแล้วโอนเงิน</sub></td>
+</tr>
+</table>
+
+**ภาพจาก AI สำหรับลองตรวจที่มาด้วย C2PA** — ต้องอัปโหลดไฟล์ต้นฉบับ (ดาวน์โหลดจากปุ่ม *Download raw file* ของ GitHub) ถ้าส่งผ่านแชตหรือแคปจอ ข้อมูล C2PA จะหายไป
+
+<table>
+<tr>
+<td align="center" width="33%"><a href="webapp/public/samples/c2pa/01-ai-signed.jpg"><img src="webapp/public/samples/c2pa/01-ai-signed.jpg" width="100%"></a><br><b>ภาพ AI มี C2PA</b><br><sub>ควรขึ้น "สร้างด้วย AI"</sub></td>
+<td align="center" width="33%"><a href="webapp/public/samples/c2pa/02-ai-stripped.jpg"><img src="webapp/public/samples/c2pa/02-ai-stripped.jpg" width="100%"></a><br><b>ภาพเดียวกัน ลบ C2PA</b><br><sub>ควรขึ้น "ไม่พบ C2PA"</sub></td>
+<td align="center" width="33%"><a href="webapp/public/samples/c2pa/03-ai-tampered.jpg"><img src="webapp/public/samples/c2pa/03-ai-tampered.jpg" width="100%"></a><br><b>แก้ภาพหลังเซ็น</b><br><sub>ควรขึ้น "ลายเซ็นใช้ไม่ได้"</sub></td>
 </tr>
 </table>
 
