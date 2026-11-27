@@ -87,6 +87,35 @@ deploy-azure.sh             deploy ขึ้น Azure App Service แผน Free
     "https://$FOUNDRY_RESOURCE.openai.azure.com/openai/v1/audio/transcriptions"
   ```
 
+## ทางเลือก: ใช้ Claude บน Microsoft Foundry แทน GPT
+
+ตั้ง `AI_PROVIDER=claude` ใน `.env.local` แล้วแอปจะใช้ Claude ผ่าน SDK ทางการ [`@anthropic-ai/foundry-sdk`](https://www.npmjs.com/package/@anthropic-ai/foundry-sdk) (โค้ดใน `lib/claude.ts`)
+ด้วย prompt และ JSON schema ชุดเดียวกับฝั่ง GPT ผ่าน structured outputs (`output_config.format`) — หน้าตาแอปและผลลัพธ์เหมือนเดิมทุกอย่าง
+
+| งาน | GPT (ค่าเริ่มต้น) | Claude (`AI_PROVIDER=claude`) |
+|---|---|---|
+| คัดกรอง + อ่านแคปหน้าจอ | `gpt-5.4-mini` | `claude-haiku-5-5` (`CLAUDE_TRIAGE_MODEL`) |
+| วิเคราะห์ละเอียด | `gpt-5.5` | `claude-opus-5-5` (`CLAUDE_DEEP_MODEL`) |
+| ถอดเสียง | `gpt-4o-transcribe` | `gpt-4o-transcribe` (Claude ไม่มีโมเดลแปลงเสียงเป็นข้อความ) |
+
+> [!WARNING]
+> **Claude บน Foundry ใช้กับบัญชี Free Trial / Student ไม่ได้** (โควตา Claude เป็น 0) ต้องเป็น subscription แบบ **pay-as-you-go**
+> คิดเงินผ่าน Microsoft Marketplace ตามราคา API ปกติ และ deploy ได้เฉพาะบาง region (เช่น East US 2, Sweden Central)
+
+**ตั้งค่า**
+
+1. ใน Foundry resource (region ที่มี Claude) deploy `claude-haiku-5-5` และ `claude-opus-5-5` ตั้งชื่อ deployment ตรงกับชื่อโมเดล
+2. ใน `.env.local` เพิ่ม `AI_PROVIDER=claude` (ใช้ `FOUNDRY_API_KEY` / `FOUNDRY_RESOURCE` เดิมได้ถ้าอยู่ resource เดียวกัน ถ้าแยก resource ใช้ `CLAUDE_FOUNDRY_RESOURCE` / `CLAUDE_FOUNDRY_API_KEY`)
+3. ถอดเสียงยังต้องมี `gpt-4o-transcribe` ถ้าจะใช้ไฟล์เสียงหรือฟังสาย
+
+**รายละเอียดในโค้ด**
+
+- `AnthropicFoundry({ apiKey, resource })` → `https://<resource>.services.ai.azure.com/anthropic/` และ `model` คือชื่อ deployment
+- คัดกรองใช้ effort `low` วิเคราะห์ละเอียดใช้ `medium` (thinking แบบ adaptive เป็นค่าเริ่มต้นของ Claude รุ่นใหม่)
+- ภาพแคปหน้าจอส่งเป็น content block `image` แบบ base64
+- ถ้าโมเดลปฏิเสธคำขอ (`stop_reason: "refusal"`) SDK ลองซ้ำบน `CLAUDE_FALLBACK_MODEL` (ค่าเริ่มต้น `claude-opus-4-8` — ต้อง deploy ไว้ด้วย หรือตั้งเป็นค่าว่างเพื่อปิด)
+- health check ใช้การนับโทเคน (`countTokens`) แทนรายชื่อโมเดล เพราะ Models API ไม่มีบน Foundry — ไม่สร้างคำตอบ ไม่เสียค่าโมเดล
+
 ## รันในเครื่อง หรือใน Codespace
 
 ต้องใช้ Node 22 ขึ้นไป

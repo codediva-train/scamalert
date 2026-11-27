@@ -13,6 +13,8 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@anthropic-ai/foundry-sdk": "1.1.1",
+    "@anthropic-ai/sdk": "1.14.0",
     "@contentauth/c2pa-web": "0.17.2",
     "next": "16.4.6",
     "openai": "7.65.0",
