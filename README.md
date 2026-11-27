@@ -9,8 +9,8 @@
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
 ![Node 22](https://img.shields.io/badge/Node-22-5FA04E?logo=nodedotjs&logoColor=white)
 ![Microsoft Foundry](https://img.shields.io/badge/Microsoft_Foundry-GPT--5.4_·_5.5-0078D4?logo=microsoftazure&logoColor=white)
-![PWA](https://img.shields.io/badge/PWA-ติดตั้งลงมือถือได้-5A0FC8?logo=pwa&logoColor=white)
-![ภาษาไทย](https://img.shields.io/badge/ภาษา-ไทย-FFB900)
+![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
+![Thai](https://img.shields.io/badge/language-Thai-FFB900)
 
 **แล็บ Online Workshop 2 · Thailand Cyber & Digital Innovation Challenge**<br>
 เสาร์ 28 พฤศจิกายน 2569 · 09.00–12.00 น. · ออนไลน์ผ่าน Google Meet
