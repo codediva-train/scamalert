@@ -6,6 +6,9 @@
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/codediva-train/scamalert?quickstart=1)
 
+🌐 **ดูแอปที่ deploy แล้ว: [scamalert.azurewebsites.net](https://scamalert.azurewebsites.net/)**<br>
+<sub>เว็บนี้ไว้ดูหน้าตาแอปเท่านั้น ไม่ได้ใส่ API key จึงตรวจจริงไม่ได้ — อยากลองตรวจ ให้รันใน Codespace ด้วย key ของคุณเอง</sub>
+
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
 ![Node 22](https://img.shields.io/badge/Node-22-5FA04E?logo=nodedotjs&logoColor=white)
 ![Microsoft Foundry](https://img.shields.io/badge/Microsoft_Foundry-GPT--5.4_·_5.5-0078D4?logo=microsoftazure&logoColor=white)
