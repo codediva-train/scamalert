@@ -1,6 +1,6 @@
-// ตรรกะเดียวกับ notebook lab_scam_triage_foundry.ipynb ย้ายมาเป็น TypeScript
+// ตรรกะสองด่านของแล็บ ScamAlert: คัดกรองด้วยโมเดลถูก แล้วส่งเฉพาะสแกมให้โมเดลแพง
 // ไฟล์นี้ถูก import จาก API route เท่านั้น จึงรันฝั่ง server และ key ไม่เคยไปถึงเบราว์เซอร์
-import OpenAI from 'openai'
+import OpenAI, { AzureOpenAI } from 'openai'
 import { NOT_A_CASE, SCAM_TYPES } from './samples'
 
 export type Category = 'สแกม' | 'ปกติ' | 'ข้อมูลบิดเบือน'
@@ -200,9 +200,26 @@ export async function readScreenshot(dataUrl: string): Promise<string | null> {
 
 const TRANSCRIBE_MODEL = process.env.TRANSCRIBE_MODEL || 'gpt-4o-transcribe'
 
+// gpt-4o-transcribe ยังเรียกผ่าน endpoint /openai/v1 ไม่ได้ (Azure ตอบ DeploymentNotFound)
+// จึงต้องใช้ path แบบ /openai/deployments/<ชื่อ>/audio/transcriptions?api-version=... ผ่าน AzureOpenAI
+let audioClient: OpenAI | null = null
+function getAudioClient() {
+  if (process.env.FOUNDRY_BASE_URL) return getClient() // server จำลองตอนทดสอบ
+  const apiKey = process.env.FOUNDRY_API_KEY
+  const resource = process.env.FOUNDRY_RESOURCE
+  if (!apiKey || !resource) throw new Error('not_configured')
+  audioClient ??= new AzureOpenAI({
+    apiKey,
+    endpoint: `https://${resource}.openai.azure.com`,
+    apiVersion: '2025-03-01-preview',
+    deployment: TRANSCRIBE_MODEL,
+  })
+  return audioClient
+}
+
 // ถอดเสียงเป็นข้อความภาษาไทย (Azure รับ mp3, mp4, m4a, wav, webm ไม่เกิน 25 MB)
 export async function transcribe(file: File): Promise<string> {
-  const r = await getClient().audio.transcriptions.create({
+  const r = await getAudioClient().audio.transcriptions.create({
     model: TRANSCRIBE_MODEL,
     file,
     language: 'th',
