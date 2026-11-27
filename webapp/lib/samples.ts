@@ -26,6 +26,25 @@ export const TOTAL_CASES = 361655
 // ภาพประกอบของประเภทที่ i (0–13) — สร้างด้วย SparkThai Model Studio
 export const caseImage = (i: number) => `/img/types/${String(i + 1).padStart(2, '0')}.webp`
 
+// ภาพหน้าจอจำลอง (ไม่ใช่หน้าตาแอปจริง) ใน public/samples/screens/ — ต้นฉบับ HTML อยู่ที่ design/fixtures/
+export const SCREEN_SAMPLES = [
+  { src: '/samples/screens/01-chat-line.webp', label: 'แชตงานกดไลก์', where: 'แชต' },
+  { src: '/samples/screens/02-post-facebook.webp', label: 'โฆษณาลงทุน', where: 'โพสต์โซเชียล' },
+  { src: '/samples/screens/03-video-crypto.webp', label: 'คลิปคริปโตรวยไว', where: 'คลิปสั้น' },
+  { src: '/samples/screens/04-sms-parcel.webp', label: 'SMS พัสดุ/ธนาคาร', where: 'SMS' },
+  { src: '/samples/screens/05-market-iphone.webp', label: 'ขายไอโฟนมัดจำ', where: 'กลุ่มซื้อขาย' },
+  { src: '/samples/screens/06-chat-romance.webp', label: 'หลอกให้รัก', where: 'แชต' },
+]
+
+// คลิปเสียงจำลอง สร้างด้วย SparkThai Thai TTS (เสียงอ้างอิง Google FLEURS th_th, CC BY 4.0) — ไม่ใช่เสียงคนจริง
+export const AUDIO_SAMPLES = [
+  { src: '/samples/audio/01-police.m4a', label: 'อ้างตำรวจกองปราบ', desc: 'บัญชีพัวพันคดี ให้โอนเงินไปตรวจสอบ', scam: true },
+  { src: '/samples/audio/02-bank.m4a', label: 'อ้างธนาคาร ขอ OTP', desc: 'บัญชีถูกเข้าใช้จากต่างประเทศ', scam: true },
+  { src: '/samples/audio/03-parcel.m4a', label: 'พัสดุผิดกฎหมาย', desc: 'พบพาสปอร์ตปลอม แล้วโอนสายไปตำรวจ', scam: true },
+  { src: '/samples/audio/04-son.m4a', label: 'ข้อความเสียง "ลูก"', desc: 'เปลี่ยนเบอร์ใหม่ ขอเงินด่วน', scam: true },
+  { src: '/samples/audio/05-hospital.m4a', label: 'โรงพยาบาลนัดหมอ', desc: 'สายปกติ ไว้เทียบ', scam: false },
+]
+
 // ตัวอย่างที่ไม่ใช่สแกม ไว้ลองดูว่าแอปไม่เตือนพร่ำเพรื่อ
 export const OTHER_SAMPLES = [
   { label: '🌊 ข่าวเขื่อนแตก', text: 'เขื่อนแตกแล้ว! น้ำจะถึงตัวเมืองใน 2 ชม. ทางการปิดข่าว รีบอพยพ ส่งต่อให้คนที่คุณรัก' },

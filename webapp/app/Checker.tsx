@@ -82,6 +82,21 @@ export default function Checker({ initialText }: { initialText: string }) {
     closeGallery()
   }
 
+  // ตัวอย่างภาพหน้าจอ / คลิปเสียงจาก public/samples — ส่งเข้าเส้นทางเดียวกับไฟล์ที่ผู้ใช้อัปโหลดเอง
+  async function pickSampleFile(src: string, kind: 'image' | 'audio') {
+    closeGallery()
+    try {
+      const blob = await (await fetch(src)).blob()
+      const file = new File([blob], src.split('/').pop()!, {
+        type: blob.type || (kind === 'audio' ? 'audio/mpeg' : 'image/webp'),
+      })
+      if (kind === 'image') await uploadImage(file)
+      else await uploadAudio(file)
+    } catch {
+      setToast(ERRORS.network)
+    }
+  }
+
   function closeSheet() {
     if (location.hash === SHEET_HASH) history.back()
     else setSheetOpen(false)
@@ -256,7 +271,7 @@ export default function Checker({ initialText }: { initialText: string }) {
 
         <div className="chips" role="list" aria-label="ลองตัวอย่าง">
           <button type="button" role="listitem" className="chip chip-all" onClick={openGallery}>
-            📚 ทั้ง 14 ประเภท
+            📚 ตัวอย่างทั้งหมด
           </button>
           {[...CASES, ...OTHER_SAMPLES].map((s) => (
             <button key={s.label} type="button" role="listitem" className="chip" onClick={() => setText(s.text)}>
@@ -321,7 +336,13 @@ export default function Checker({ initialText }: { initialText: string }) {
         </button>
       </div>
 
-      <TypesGallery open={galleryOpen} onClose={closeGallery} onPick={pickSample} />
+      <TypesGallery
+        open={galleryOpen}
+        onClose={closeGallery}
+        onPick={pickSample}
+        onPickScreen={(src) => pickSampleFile(src, 'image')}
+        onPickAudio={(src) => pickSampleFile(src, 'audio')}
+      />
 
       {liveOpen && <LiveListen onDone={liveDone} onCancel={() => setLiveOpen(false)} />}
 
