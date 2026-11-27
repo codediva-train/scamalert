@@ -46,6 +46,47 @@ deploy-azure.sh             deploy ขึ้น Azure App Service แผน Free
 
 ถอดเสียงคิดเงินตามความยาวเสียง ฟังสาย 10 นาทีคือถอดเสียง 10 นาที บวกการคัดกรองทุก ๆ 6 วินาที
 
+## การถอดเสียงทำงานอย่างไร
+
+**โมเดล:** deploy `gpt-4o-transcribe` แบบ Global Standard ใน Foundry resource ที่มีโมเดลนี้ (เช่น East US 2, Sweden Central — ยังไม่มีใน region เอเชีย)
+ชื่อ deployment ตั้งได้ทาง `TRANSCRIBE_MODEL` (ค่าเริ่มต้น `gpt-4o-transcribe`)
+
+**ทำไมการถอดเสียงใช้ client แยก:** ทดสอบกับ Azure จริง (27 พ.ย. 2569, deploy ไว้เกินชั่วโมงแล้ว)
+
+| เรียกผ่าน | ผล |
+|---|---|
+| `/openai/v1/audio/transcriptions` (แบบเดียวกับข้อความและภาพ) | ❌ 404 `DeploymentNotFound` |
+| `/openai/deployments/gpt-4o-transcribe/audio/transcriptions?api-version=2025-03-01-preview` | ✅ ถอดเสียงไทยได้ |
+
+**ในโค้ด** (`lib/scam.ts`)
+
+- `getClient()` — `OpenAI` ชี้ไป `https://<resource>.openai.azure.com/openai/v1/` ใช้กับคัดกรอง วิเคราะห์ละเอียด และอ่านภาพ
+- `getAudioClient()` — `AzureOpenAI({ endpoint, apiVersion: '2025-03-01-preview', deployment: TRANSCRIBE_MODEL })` ใช้กับถอดเสียงอย่างเดียว ไลบรารีต่อ path `/deployments/...` ให้เอง
+- `transcribe(file)` — ส่ง `language: 'th'` แล้วคืนข้อความ
+- ตั้ง `FOUNDRY_BASE_URL` (ตอนทดสอบกับ server จำลอง) แล้วทุกอย่างใช้ client เดียว
+
+**เสียงเข้ามาทาง** `POST /api/transcribe` ทั้งหมด แล้วข้อความที่ได้ไปตรวจต่อแบบเดียวกับข้อความที่พิมพ์
+
+- **อัปโหลดไฟล์** — mp3, m4a, mp4, wav, webm ไม่เกิน 25 MB · route ตั้งชื่อไฟล์ใหม่เป็น ASCII (เช่น `audio.m4a`) เพราะ Azure รับชื่อไฟล์ ASCII เท่านั้น
+- **ฟังสายสด** — เบราว์เซอร์อัดช่วงละ 6 วินาที ช่วงที่เงียบไม่ส่ง (โมเดลมักแต่งคำขึ้นมาเองเมื่อเจอความเงียบ) ระหว่างฟังใช้ด่านคัดกรองอย่างเดียว กดหยุดแล้ววิเคราะห์เต็ม
+- **คลิปตัวอย่าง** — 5 คลิปใน `public/samples/audio/` ผ่านทางเดียวกับการอัปโหลด
+
+**ผลทดสอบกับโมเดลจริง** — คลิปอ้างธนาคาร ลูกเปลี่ยนเบอร์ และโรงพยาบาล ถอดตรงทุกคำใน 1–3.5 วินาที
+คลิปอ้างตำรวจพลาดบางคำ ("กองปราบปราม" → "กองปากปาม") แต่ใจความครบ และทั้ง 5 คลิปจัดประเภทคดีถูก
+
+**ข้อจำกัด**
+
+- `gpt-4o-transcribe` ยังเป็น Preview และมีเฉพาะบาง region บัญชี Free Trial อาจไม่มีโควตา ถ้าไม่มี ส่วนเสียงใช้ไม่ได้ แต่ข้อความและภาพยังใช้ได้
+- ฟังสายต้องใช้อีกเครื่อง เพราะมือถือปิดไมค์ของแอปอื่นระหว่างโทร
+- ถ้าวันหน้า Azure รองรับ `/openai/v1` สำหรับโมเดลถอดเสียง ลบ `getAudioClient()` ให้ `transcribe()` ใช้ `getClient()` ได้ — ทดสอบก่อนว่า v1 ตอบ 200:
+
+  ```bash
+  set -a; . ./.env.local; set +a
+  curl -s -H "api-key: $FOUNDRY_API_KEY" -F model=gpt-4o-transcribe -F language=th \
+    -F "file=@public/samples/audio/02-bank.m4a;type=audio/mp4" \
+    "https://$FOUNDRY_RESOURCE.openai.azure.com/openai/v1/audio/transcriptions"
+  ```
+
 ## รันในเครื่อง หรือใน Codespace
 
 ต้องใช้ Node 22 ขึ้นไป
@@ -60,7 +101,7 @@ npm run dev                   # เปิด http://localhost:3000
 key อยู่ใน `.env.local` ฝั่ง server เท่านั้น ไม่ถูกส่งไปที่เบราว์เซอร์ และไฟล์นี้ไม่ถูก commit
 ไมค์ใช้ได้เฉพาะบน `https://` หรือ `localhost` เท่านั้น
 
-## ตรวจที่มาของภาพด้วย C2PA (branch `feature/c2pa`)
+## ตรวจที่มาของภาพด้วย C2PA
 
 เวลาอัปโหลดภาพ แอปตรวจ **Content Credentials (C2PA)** จากไฟล์ต้นฉบับในเบราว์เซอร์ก่อนย่อภาพ (ภาพไม่ถูกส่งไปไหน)
 ด้วยไลบรารีทางการ [`@contentauth/c2pa-web`](https://github.com/contentauth/c2pa-js) แล้วแสดงใน sheet ผลตรวจ:
