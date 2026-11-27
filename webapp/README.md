@@ -60,6 +60,20 @@ npm run dev                   # เปิด http://localhost:3000
 key อยู่ใน `.env.local` ฝั่ง server เท่านั้น ไม่ถูกส่งไปที่เบราว์เซอร์ และไฟล์นี้ไม่ถูก commit
 ไมค์ใช้ได้เฉพาะบน `https://` หรือ `localhost` เท่านั้น
 
+## ตรวจที่มาของภาพด้วย C2PA (branch `feature/c2pa`)
+
+เวลาอัปโหลดภาพ แอปตรวจ **Content Credentials (C2PA)** จากไฟล์ต้นฉบับในเบราว์เซอร์ก่อนย่อภาพ (ภาพไม่ถูกส่งไปไหน)
+ด้วยไลบรารีทางการ [`@contentauth/c2pa-web`](https://github.com/contentauth/c2pa-js) แล้วแสดงใน sheet ผลตรวจ:
+
+- 🤖 **ภาพนี้ระบุว่าสร้างด้วย AI** — `digitalSourceType` เป็น `trainedAlgorithmicMedia` พร้อมเครื่องมือและผู้เซ็น
+- ⚠️ **ภาพถูกแก้หลังเซ็น** — hash ไม่ตรง ข้อมูลที่มาเชื่อไม่ได้
+- ⚪ **ไม่พบ Content Credentials** — แคปหน้าจอและภาพที่ส่งผ่าน LINE / Facebook / TikTok ถูกลบข้อมูลนี้แทบทุกครั้ง **ไม่พบ ≠ ภาพจริง**
+
+ลองได้จาก 📚 ตัวอย่างทั้งหมด → แท็บภาพหน้าจอ → "ภาพจาก AI" (เซ็นด้วยใบรับรองทดสอบของแล็บ ดู `scripts/make-c2pa-samples.mjs`)
+ไฟล์ WASM (~9 MB) ถูกคัดลอกไป `public/c2pa/` อัตโนมัติก่อน `npm run dev` / `npm run build` และโหลดเฉพาะตอนตรวจภาพ
+
+ยังไม่ได้ทำ: ตรวจผู้เซ็นกับ C2PA trust list ทางการ (ตอนนี้ทุกผู้เซ็นขึ้นว่า "ไม่อยู่ในรายชื่อที่เชื่อถือได้")
+
 ## Deploy ขึ้น Azure App Service (ฟรี)
 
 ```bash

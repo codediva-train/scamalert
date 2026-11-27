@@ -401,6 +401,8 @@ a { text-decoration: none; }
 
 .item { padding: 12px 14px; }
 .item.split { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.item.split > span:first-child { flex: none; }
+.item.split > code { text-align: right; }
 .item code { font-family: ui-monospace, 'SF Mono', Menlo, var(--font-thai), monospace; font-size: 14px; word-break: break-all; }
 .item.step { display: flex; gap: 12px; align-items: flex-start; }
 .step-no {
@@ -594,3 +596,12 @@ a { text-decoration: none; }
 .key-alert ol { margin: 0 0 16px; padding-left: 20px; font-size: 14px; line-height: 1.55; }
 .key-alert code { font-size: 12.5px; padding: 1px 5px; border-radius: 6px; background: rgba(127, 127, 127, .18); overflow-wrap: anywhere; }
 .key-alert .primary { width: 100%; min-height: 48px; border: 0; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; }
+
+/* C2PA: ที่มาของภาพ */
+.item.c2pa { display: flex; flex-direction: column; gap: 2px; }
+.item.c2pa small { color: var(--muted); font-size: 13px; }
+.item.c2pa.bad b { color: var(--bad); }
+.item.c2pa.warn b { color: var(--warn); }
+.item.c2pa.ok b { color: var(--ok); }
+.c2pa-samples .screen img { aspect-ratio: 4 / 3; object-position: center; }
+.verdict-icon.c2pa-icon { background: #2b6cd8; }

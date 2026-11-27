@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { AUDIO_SAMPLES, CASES, SCREEN_SAMPLES, TOTAL_CASES, caseImage } from '@/lib/samples'
+import { AUDIO_SAMPLES, C2PA_SAMPLES, CASES, SCREEN_SAMPLES, TOTAL_CASES, caseImage } from '@/lib/samples'
 import Icon from './Icon'
 
 type Tab = 'text' | 'screen' | 'audio'
@@ -75,6 +75,16 @@ export default function TypesGallery({
               <p className="fine gallery-intro">หน้าจอจำลองแบบแชต โพสต์ คลิปสั้น และ SMS — แตะเพื่อให้ AI อ่านข้อความในภาพแล้วตรวจ</p>
               <div className="screens">
                 {SCREEN_SAMPLES.map((s) => (
+                  <button key={s.src} type="button" className="screen" onClick={() => onPickScreen(s.src)}>
+                    <img src={s.src} alt={s.label} loading="lazy" />
+                    <b>{s.label}</b>
+                    <small>{s.where}</small>
+                  </button>
+                ))}
+              </div>
+              <p className="section-label">ภาพจาก AI · ตรวจที่มาด้วย C2PA</p>
+              <div className="screens c2pa-samples">
+                {C2PA_SAMPLES.map((s) => (
                   <button key={s.src} type="button" className="screen" onClick={() => onPickScreen(s.src)}>
                     <img src={s.src} alt={s.label} loading="lazy" />
                     <b>{s.label}</b>
