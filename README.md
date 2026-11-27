@@ -81,7 +81,7 @@ flowchart LR
 
 ## 🎯 ภารกิจ 11 ขั้น
 
-ทำตามลำดับ ติ๊กในใจทีละข้อ ✅ — คู่มือพร้อมภาพทีละขั้นอยู่ที่ **[training.codediva.co/workshops/cyber-challenge](https://training.codediva.co/workshops/cyber-challenge)** (รหัสแจ้งในห้อง)
+ทำตามลำดับ ติ๊กในใจทีละข้อ ✅ — **README นี้คือคู่มือของแล็บ** สไลด์ในห้องใช้ลำดับ 11 ข้อเดียวกัน
 
 <table>
 <tr><th>#</th><th>ภารกิจ</th><th>ได้อะไร</th></tr>
@@ -90,10 +90,10 @@ flowchart LR
 <tr><td>3</td><td>▶️ <code>npm run dev</code></td><td>แอปรันบนพอร์ต 3000</td></tr>
 <tr><td>4</td><td>🔎 ตรวจข้อความแรก</td><td>เห็นผลสองด่านครั้งแรก</td></tr>
 <tr><td>5</td><td>📖 อ่าน <code>lib/scam.ts</code></td><td>เข้าใจ prompt + JSON schema</td></tr>
-<tr><td>6</td><td>🗂️ ลอง 14 ประเภทคดี</td><td>เห็นว่า AI จัดประเภทแม่นแค่ไหน</td></tr>
+<tr><td>6</td><td>📚 ลองตัวอย่างทั้งหมด</td><td>ข้อความ 14 ประเภทคดี · เห็นว่า AI จัดประเภทแม่นแค่ไหน</td></tr>
 <tr><td>7</td><td>✍️ ปรับ <code>TRIAGE_PROMPT</code></td><td>แก้เคสที่ AI ทายผิด</td></tr>
 <tr><td>8</td><td>🧠 ด่านที่สอง (gpt-5.5)</td><td>คำอธิบาย + สิ่งที่ควรทำต่อ</td></tr>
-<tr><td>9</td><td>📸🎙️ แคปจอ + เสียง</td><td>ตรวจได้ทุกช่องทาง</td></tr>
+<tr><td>9</td><td>📸🎙️ แท็บภาพหน้าจอ + คลิปเสียง</td><td>ตรวจแคปจอโซเชียลและสายโทรหลอก</td></tr>
 <tr><td>10</td><td>📏 วัดผล</td><td>ความแม่น + ค่าใช้จ่ายต่อข้อความ</td></tr>
 <tr><td>11</td><td>☁️ Deploy ขึ้น Azure</td><td>ลิงก์จริงเปิดบนมือถือ + ติดตั้งเป็นแอป</td></tr>
 </table>
@@ -116,9 +116,11 @@ flowchart LR
 
 <br>
 
-1. ลองตัวอย่างทั้ง 16 ข้อในแอป จดเคสที่ทาย **ผิด**
+1. แตะ **📚 ตัวอย่างทั้งหมด** ลองข้อความทั้ง 16 ข้อ จดเคสที่ทาย **ผิด** (ทั้งผิดว่าสแกมไหม และผิดประเภทคดี)
 2. เพิ่มกฎใน `TRIAGE_PROMPT` ให้ตรงจุด เช่น *"ข้อความที่ขอให้โอนเงินก่อนรับของ ถือเป็นสแกมเสมอ"*
 3. บันทึกไฟล์ — `npm run dev` โหลดใหม่ให้เอง — แล้วลองเคสเดิมอีกรอบ
+
+> ตัวอย่างจริงจากการทำแอปนี้: คลิปเสียง "อ้างตำรวจกองปราบ" เคยถูกจัดเป็น *แอบอ้างเป็นคนอื่นเพื่อยืมเงิน* จนเพิ่มคำอธิบายใน `TRIAGE_PROMPT` ว่าคอลเซ็นเตอร์ = อ้างตำรวจ/ธนาคาร/ขนส่ง แล้วขู่ ส่วนแอบอ้าง = อ้างเป็นญาติหรือคนรู้จัก
 
 > ทายผิดแบบ **"สแกมแต่บอกว่าปกติ"** อันตรายกว่า **"ปกติแต่บอกว่าสแกม"** มาก — ตัดสินใจให้ได้ว่าจะยอมพลาดด้านไหน แล้วเขียนเหตุผลลง Concept Proposal
 
@@ -148,6 +150,12 @@ flowchart LR
 az login --use-device-code
 cd webapp
 APP_NAME=scam-check-<ชื่อทีม> ./deploy-azure.sh
+```
+
+ถ้าขึ้น *"Operation cannot be completed without additional quota … F1 … 0"* แปลว่า subscription นี้ไม่มีโควตาแผนฟรี ลอง region อื่น หรือใช้แผน B1 (เสียเงินราว 13 ดอลลาร์/เดือน — ลบ resource group ทิ้งหลังใช้):
+
+```bash
+LOCATION=southeastasia SKU=B1 APP_NAME=scam-check-<ชื่อทีม> ./deploy-azure.sh
 ```
 
 ได้ลิงก์ `https://scam-check-<ชื่อทีม>.azurewebsites.net` → เปิดบนมือถือ → **ติดตั้งแอป** (Android: เมนู ⋮ · iPhone: แชร์ → เพิ่มไปยังหน้าจอโฮม)
@@ -300,11 +308,11 @@ group → deploy `gpt-5.4-mini` and `gpt-5.5` (or `gpt-5.4`) as Global Standard,
 1. Click **Open in GitHub Codespaces** above → Create codespace (2–3 min) → *Trust Folder & Continue*
 2. `cd webapp && cp .env.example .env.local`, put `FOUNDRY_API_KEY` and `FOUNDRY_RESOURCE` in `.env.local`
 3. `npm run dev` — the app opens on port 3000
-4. Last mission: `az login --use-device-code` then `APP_NAME=scam-check-<team> ./deploy-azure.sh` (free App Service tier)
+4. Last mission: `az login --use-device-code` then `APP_NAME=scam-check-<team> ./deploy-azure.sh` (free App Service tier; if F1 quota is 0, add `LOCATION=southeastasia SKU=B1`, a paid plan of about USD 13/month)
 
 **Avoiding charges:** a free account never charges you on its own; don't press Upgrade; never commit your key or make
 port 3000 Public; don't enable Always On or scale up App Service; delete the resource group and stop the Codespace afterwards.
 
-Step-by-step guide: https://training.codediva.co/en/workshops/cyber-challenge · App details: [`webapp/README.md`](webapp/README.md)
+This README is the lab guide; the slides follow the same 11 missions. App details: [`webapp/README.md`](webapp/README.md)
 
 </details>
