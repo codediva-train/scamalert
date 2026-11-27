@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy แอปนี้ขึ้น Azure App Service แผน Free (F1, Linux)
+# Deploy แอปนี้ขึ้น Azure App Service (Linux) — ค่าเริ่มต้นแผน Free (F1)
 # ใช้: APP_NAME=<ชื่อไม่ซ้ำใครทั้งโลก> ./deploy-azure.sh
 # ต้องมี: az login แล้ว (ใน Codespace ใช้ az login --use-device-code), Node 22, zip,
 #        ไฟล์ .env.local ที่มี FOUNDRY_API_KEY และ FOUNDRY_RESOURCE
@@ -10,6 +10,8 @@ cd "$(dirname "$0")"
 RG="${RG:-rg-scam-check}"
 LOCATION="${LOCATION:-southeastasia}"
 PLAN="${APP_NAME}-plan"
+# F1 = ฟรี · ถ้าขึ้น "additional quota … F1 … 0" ให้ลอง region อื่น (LOCATION=...) หรือใช้ SKU=B1 (เสียเงินราว 13 ดอลลาร์/เดือน)
+SKU="${SKU:-F1}"
 
 command -v az >/dev/null || { echo "ไม่พบ Azure CLI (az) — ใน Codespace ของแล็บมีให้แล้ว ถ้ารันที่เครื่องตัวเองให้ติดตั้งก่อน"; exit 1; }
 command -v zip >/dev/null || { echo "ไม่พบคำสั่ง zip — ติดตั้งด้วย: sudo apt-get install -y zip"; exit 1; }
@@ -28,9 +30,9 @@ rm -f deploy.zip
 (cd .next/standalone && zip -qr ../../deploy.zip .)
 
 echo "== สร้าง resource (ถ้ามีอยู่แล้วจะใช้ของเดิม)"
-az group create -n "$RG" -l "$LOCATION" -o none
-az appservice plan create -g "$RG" -n "$PLAN" --is-linux --sku F1 -o none
-az webapp create -g "$RG" -p "$PLAN" -n "$APP_NAME" --runtime "NODE:22-lts" -o none
+az group show -n "$RG" -o none 2>/dev/null || az group create -n "$RG" -l "$LOCATION" -o none
+az appservice plan show -g "$RG" -n "$PLAN" -o none 2>/dev/null || az appservice plan create -g "$RG" -n "$PLAN" --is-linux --sku "$SKU" -l "$LOCATION" -o none
+az webapp show -g "$RG" -n "$APP_NAME" -o none 2>/dev/null || az webapp create -g "$RG" -p "$PLAN" -n "$APP_NAME" --runtime "NODE:22-lts" -o none
 
 # HOSTNAME=0.0.0.0 ให้ server.js รับ request จากนอกเครื่อง (App Service ตั้ง HOSTNAME เป็นชื่อ container)
 az webapp config set -g "$RG" -n "$APP_NAME" --startup-file "HOSTNAME=0.0.0.0 node server.js" -o none
