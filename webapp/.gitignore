@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.env*.local
+deploy.zip
+next-env.d.ts
+
+# repo ignores .env.* and the global gitignore ignores lockfiles — these two must be committed
+!.env.example
+!package-lock.json

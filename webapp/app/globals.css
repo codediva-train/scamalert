@@ -1,0 +1,571 @@
+/* หน้าตาแบบแอปมือถือ: app bar ติดบน, ปุ่มหลักติดล่าง, ผลลัพธ์เป็น bottom sheet, สีตามธีมของเครื่อง */
+:root {
+  --bg: #f2f3f7;
+  --surface: #ffffff;
+  --surface-2: #e9ecf2;
+  --text: #0b1220;
+  --muted: #5d6679;
+  --sep: rgba(11, 18, 32, 0.08);
+  --bar: rgba(242, 243, 247, 0.82);
+  --brand: #0a2342;
+  --accent: #ffb900;
+  --on-accent: #0a2342;
+  --bad: #e5484d;
+  --warn: #e39b00;
+  --ok: #2a9d63;
+  --radius: 14px;
+  --bar-h: 76px;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #08111f;
+    --surface: #132239;
+    --surface-2: #1b2d4a;
+    --text: #eef3fa;
+    --muted: #96a7c0;
+    --sep: rgba(255, 255, 255, 0.08);
+    --bar: rgba(8, 17, 31, 0.78);
+    --bad: #ff6b6b;
+    --warn: #ffc53d;
+    --ok: #4cd08a;
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { margin: 0; }
+html.lock, html.lock body { overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-thai), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+button, a { font: inherit; color: inherit; touch-action: manipulation; }
+button { cursor: pointer; }
+a { text-decoration: none; }
+
+/* หน้าแรกพอดีหนึ่งจอ: ความสูงเท่าจอ ไม่เลื่อนทั้งหน้า (ช่องข้อความยืดเต็มที่ว่างและเลื่อนในตัวเอง) */
+.app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ---- app bar ---- */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  background: var(--bar);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--sep);
+  user-select: none;
+}
+.app-bar-icon { border-radius: 7px; }
+.sos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bad);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+.sos:active { transform: scale(0.96); }
+.app-bar-title { font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
+.app-bar-title b { color: #d99a00; }
+@media (prefers-color-scheme: dark) { .app-bar-title b { color: var(--accent); } }
+
+/* ---- content ---- */
+.content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px calc(var(--bar-h) + env(safe-area-inset-bottom) + 10px);
+  overflow-y: auto; /* สำรองไว้เฉพาะจอที่เตี้ยมากจริง ๆ */
+}
+/* ภาพ hero แถบเตี้ย หัวข้อวางทับส่วนที่จางลงเป็นสีพื้น */
+.hero {
+  position: relative;
+  flex: none;
+  height: clamp(132px, 24dvh, 210px);
+  margin: 0 -16px;
+  overflow: hidden;
+}
+.hero img { width: 100%; height: 100%; object-fit: cover; object-position: 66% 32%; display: block; }
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 25%, color-mix(in srgb, var(--bg) 75%, transparent) 68%, var(--bg) 100%);
+}
+.hero-text { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 0; }
+@media (min-width: 600px) { .hero { margin: 0; border-radius: 0 0 var(--radius) var(--radius); } }
+/* จอเตี้ย หรือคีย์บอร์ด Android ดันจอให้เตี้ยลง: ซ่อนภาพ เหลือแต่หัวข้อ */
+@media (max-height: 600px) {
+  .hero { height: auto; margin: 0; }
+  .hero img, .hero::after { display: none; }
+  .hero-text { position: static; padding-top: 8px; }
+}
+.large-title { font-size: 30px; line-height: 1.2; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.lead { color: var(--muted); margin: 0; font-size: 15px; }
+
+.field {
+  flex: 1 1 auto;
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 12px 14px 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.field:focus-within { box-shadow: 0 0 0 2px var(--accent); }
+.input {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px; /* 16px ขึ้นไป iOS จะไม่ซูมเข้าตอนแตะ */
+}
+.input::placeholder { color: var(--muted); opacity: 0.8; }
+.field-foot { display: flex; align-items: center; justify-content: space-between; min-height: 28px; }
+.count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.clear {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.section-label {
+  margin: 24px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* ---- chips: เลื่อนแนวนอนแบบแอป ---- */
+.chips {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 0 16px 2px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none;
+  scroll-snap-align: start;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+/* ---- grouped list แบบหน้า Settings ---- */
+.group {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.group > li + li { border-top: 0.5px solid var(--sep); }
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.row:disabled { opacity: 0.5; }
+.row-icon.live-ic { background: #e5484d; }
+.row-icon.line-ic { background: #06c755; } /* เขียวแบบแอปแชต */
+.row-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: #fff; flex: none; }
+.row-icon.bad { background: var(--bad); }
+.row-icon.brand { background: #2b6cd8; }
+.row-text { flex: 1; display: flex; flex-direction: column; line-height: 1.35; }
+.row-text small { color: var(--muted); font-size: 14px; }
+.chev { color: var(--muted); opacity: 0.6; flex: none; }
+
+/* ตรวจจากเสียง: สองปุ่มวางคู่ */
+.tiles { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 62px;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  transition: transform 0.12s ease;
+}
+.tile:active { transform: scale(0.97); }
+.tile:disabled { opacity: 0.5; }
+.tile-text { display: flex; flex-direction: column; align-items: center; line-height: 1.3; min-width: 0; max-width: 100%; }
+.tile-text b { font-size: 14px; }
+.tile-text small { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.fine { flex: none; margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+/* คีย์บอร์ดเปิด (จอเหลือเตี้ยมาก): เหลือแค่ช่องข้อความ ตัวอย่าง และปุ่มตรวจ */
+@media (max-height: 520px) { .tiles, .fine { display: none; } }
+
+/* ---- แถบปุ่มล่าง ---- */
+.action-bar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px calc(env(safe-area-inset-bottom) + 10px);
+  background: var(--bar);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 0.5px solid var(--sep);
+}
+.action-bar > * { max-width: 560px; }
+.icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 54px;
+  height: 54px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.primary, .secondary, .plain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius);
+  font-size: 17px;
+  font-weight: 600;
+}
+.action-bar .primary { flex: 1; }
+.primary { background: var(--accent); color: var(--on-accent); }
+.primary.danger { background: var(--bad); color: #fff; }
+.primary:disabled { background: var(--surface-2); color: var(--muted); }
+.secondary { background: var(--surface-2); color: var(--text); }
+.plain { background: transparent; color: var(--muted); font-weight: 500; }
+
+.icon-btn, .primary, .secondary, .plain, .chip, .row, .clear {
+  transition: transform 0.12s ease, opacity 0.12s ease, background-color 0.12s ease;
+}
+.icon-btn:active, .primary:not(:disabled):active, .secondary:active, .plain:active, .chip:active, .clear:active { transform: scale(0.96); }
+.row:active { background: var(--surface-2); }
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- toast ---- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + 12px);
+  z-index: 30;
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(20, 24, 33, 0.92);
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+  transform: translate(-50%, 12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---- bottom sheet ---- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.scrim.show { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  --tone: var(--accent);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  max-width: 600px;
+  max-height: 92dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+  transform: translateY(105%);
+  visibility: hidden; /* ซ่อนหลังเลื่อนลงจบ ไม่ให้ขอบโผล่ตอนหน้าเด้ง (iOS overscroll) */
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.38s;
+}
+.sheet.open { transform: translateY(0); visibility: visible; transition-delay: 0s; }
+.sheet.bad { --tone: var(--bad); }
+.sheet.warn { --tone: var(--warn); }
+.sheet.ok { --tone: var(--ok); }
+
+.sheet-grab { flex: none; display: grid; place-items: center; height: 26px; touch-action: none; cursor: grab; }
+.handle { width: 38px; height: 5px; border-radius: 3px; background: var(--muted); opacity: 0.4; }
+.sheet-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px calc(env(safe-area-inset-bottom) + 16px);
+}
+
+.verdict { text-align: center; padding: 6px 8px 4px; }
+.verdict-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--tone);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--tone) 40%, transparent);
+}
+.verdict h2 { margin: 12px 0 2px; font-size: 24px; line-height: 1.3; }
+.verdict p { margin: 0; color: var(--muted); }
+.meter { height: 6px; margin: 16px auto 4px; max-width: 220px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.meter span { display: block; height: 100%; border-radius: 3px; background: var(--tone); }
+.meter-label { color: var(--muted); font-size: 13px; }
+
+.item { padding: 12px 14px; }
+.item.split { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.item code { font-family: ui-monospace, 'SF Mono', Menlo, var(--font-thai), monospace; font-size: 14px; word-break: break-all; }
+.item.step { display: flex; gap: 12px; align-items: flex-start; }
+.step-no {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--tone);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tag { flex: none; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: var(--surface-2); color: var(--muted); }
+.tag.bad { background: var(--bad); color: #fff; }
+
+.sheet-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+
+/* ---- แกลเลอรี 14 ประเภทคดี ---- */
+.chip-all { background: var(--brand); color: #fff; font-weight: 600; }
+.sheet.gallery { height: 92dvh; }
+.gallery-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 6px 16px 10px; }
+.gallery-head h2 { margin: 0; font-size: 20px; }
+.gallery-head p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.gallery-close { flex: none; color: var(--text); background: var(--surface-2); border: 0; }
+.cases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.case {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: transform 0.12s ease;
+}
+.case:active { transform: scale(0.97); }
+.case-img { position: relative; display: block; aspect-ratio: 4 / 3; background: var(--surface-2); }
+.case-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.case-rank {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(10, 35, 66, 0.85);
+  color: #ffb900;
+  font-size: 13px;
+  font-weight: 700;
+}
+.case-body { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px 10px; line-height: 1.35; }
+.case-body b { font-size: 15px; }
+.case-body small { font-size: 12px; color: var(--muted); }
+.case-body .case-count { color: var(--bad); font-weight: 600; }
+.gallery-note { margin-top: 14px; }
+
+/* ภาพประกอบประเภทคดีบนหัว sheet ผลตรวจ */
+.case-pic { margin: 0 0 4px; border-radius: var(--radius); overflow: hidden; aspect-ratio: 16 / 9; }
+.case-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.case-type { margin: 12px 0 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.case-type b { color: var(--tone); }
+.case-type small { color: var(--muted); font-size: 12px; }
+
+/* ---- โหมดฟังสาย: หน้าจอเต็มแบบหน้าจอระหว่างโทร (มืดเสมอ) ---- */
+.live {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  /* ภาพคนฟังสายจริง ทับด้วยไล่สีน้ำเงินเข้มให้ข้อความอ่านง่าย */
+  background:
+    linear-gradient(180deg, rgba(5, 12, 24, 0.55) 0%, rgba(5, 12, 24, 0.7) 40%, rgba(5, 12, 24, 0.94) 75%),
+    url('/img/live-call.webp') center top / cover no-repeat,
+    #050c18;
+  color: #eef3fa;
+  animation: live-in 0.3s ease;
+}
+@keyframes live-in { from { opacity: 0; transform: translateY(24px); } }
+.live-top { display: flex; align-items: center; justify-content: space-between; height: 48px; }
+.live-close { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.1); }
+.live-clock { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4d4f; animation: blink 1.2s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+.live-risk {
+  --tone: rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--tone);
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+.live-risk b { font-size: 20px; line-height: 1.35; }
+.live-risk small { opacity: 0.85; }
+.live-risk.bad { --tone: #d93036; animation: pulse 1.4s ease-in-out infinite; }
+.live-risk.warn { --tone: #b77900; }
+.live-risk.ok { --tone: #1f7a4d; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 10px rgba(217, 48, 54, 0.25); } }
+
+.live-bars { --lvl: 0; display: flex; justify-content: center; align-items: center; gap: 6px; height: 72px; margin: 12px 0 4px; }
+.live-bars span {
+  width: 8px;
+  height: calc(8px + var(--lvl) * var(--k) * 60px);
+  border-radius: 4px;
+  background: #ffb900;
+  transition: height 0.08s linear;
+}
+
+.live-hint { margin: 4px 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 185, 0, 0.14); color: #ffd666; font-size: 14px; }
+.live-hint.err { background: rgba(255, 77, 79, 0.16); color: #ff9c9e; }
+
+.live-lines {
+  flex: 1;
+  min-height: 0;
+  margin: 8px 0 12px;
+  overflow-y: auto;
+  mask-image: linear-gradient(transparent 0, #000 24px);
+  -webkit-mask-image: linear-gradient(transparent 0, #000 24px);
+}
+.live-lines p { margin: 0 0 10px; font-size: 18px; line-height: 1.5; }
+.live-lines p:last-child { color: #fff; }
+.live-lines p:not(:last-child) { color: rgba(238, 243, 250, 0.6); }
+.live-empty { padding-top: 24px; text-align: center; color: rgba(238, 243, 250, 0.5) !important; font-size: 15px !important; }
+
+.live-bottom { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.live-bottom small { color: rgba(238, 243, 250, 0.7); }
+.stop-btn {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: transparent;
+  transition: transform 0.12s ease;
+}
+.stop-btn:active { transform: scale(0.94); }
+.stop-btn:disabled { opacity: 0.5; }
+.stop-square { width: 28px; height: 28px; border-radius: 6px; background: #ff4d4f; }
+
+.live-blocked { margin: auto 0; text-align: center; }
+.live-blocked h2 { font-size: 22px; }
+.live-blocked p { color: rgba(238, 243, 250, 0.75); margin-bottom: 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* จอกว้าง (แท็บเล็ต/เดสก์ท็อป): จัดกลางให้เหมือนแอปบนแท็บเล็ต */
+@media (min-width: 600px) {
+  .action-bar { justify-content: center; }
+  .action-bar .primary { max-width: 486px; }
+}
