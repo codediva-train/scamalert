@@ -605,3 +605,6 @@ a { text-decoration: none; }
 .item.c2pa.ok b { color: var(--ok); }
 .c2pa-samples .screen img { aspect-ratio: 4 / 3; object-position: center; }
 .verdict-icon.c2pa-icon { background: #2b6cd8; }
+
+/* เลขรุ่นของแอปท้ายบรรทัด footer */
+.fine .ver { font-variant-numeric: tabular-nums; opacity: 0.8; white-space: nowrap; }

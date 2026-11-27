@@ -348,7 +348,13 @@ export default function Checker({ initialText }: { initialText: string }) {
         />
         <input ref={imageRef} type="file" accept="image/*" hidden onChange={(e) => uploadImage(e.target.files?.[0])} />
 
-        <p className="fine">AI อาจผิดได้ · ไม่เก็บข้อความหรือเสียงที่ตรวจ</p>
+        <p className="fine">
+          AI อาจผิดได้ · ไม่เก็บข้อความหรือเสียงที่ตรวจ ·{' '}
+          <span className="ver">
+            v{process.env.NEXT_PUBLIC_APP_VERSION}
+            {process.env.NEXT_PUBLIC_APP_COMMIT ? ` (${process.env.NEXT_PUBLIC_APP_COMMIT})` : ''}
+          </span>
+        </p>
       </main>
 
       <div className="action-bar">
