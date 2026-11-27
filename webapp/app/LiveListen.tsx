@@ -137,7 +137,7 @@ export default function LiveListen({ onDone, onCancel }: { onDone: (transcript: 
         const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
         const data = await res.json()
         if (!res.ok) {
-          setError(data.error === 'not_configured' ? 'ผู้ดูแลยังไม่ได้ตั้งค่าโมเดลถอดเสียง' : 'ถอดเสียงช่วงนี้ไม่สำเร็จ')
+          setError(data.error === 'not_configured' ? 'ผู้ดูแลยังไม่ได้ตั้งค่าโมเดลถอดเสียง' : data.error === 'auth' ? 'API key ของ Foundry ใช้งานไม่ได้ แจ้งผู้ดูแลแอป' : 'ถอดเสียงช่วงนี้ไม่สำเร็จ')
           return
         }
         setError('')

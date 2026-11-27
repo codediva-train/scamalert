@@ -1,4 +1,4 @@
-import { readScreenshot } from '@/lib/scam'
+import { errorCode, readScreenshot } from '@/lib/scam'
 
 const MAX_BYTES = 8 * 1024 * 1024 // เบราว์เซอร์ย่อรูปก่อนส่งแล้ว ปกติไม่เกิน 1 MB
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
     return Response.json({ text })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
-    if (message === 'not_configured') return Response.json({ error: 'not_configured' }, { status: 503 })
+    const code = errorCode(e)
+    if (code !== 'upstream') return Response.json({ error: code }, { status: 503 })
     console.error('read-image failed:', message) // ไม่ log รูปหรือข้อความที่อ่านได้
     return Response.json({ error: 'upstream' }, { status: 502 })
   }

@@ -1,4 +1,4 @@
-import { transcribe } from '@/lib/scam'
+import { errorCode, transcribe } from '@/lib/scam'
 
 const MAX_BYTES = 25 * 1024 * 1024 // เพดานของ Azure
 
@@ -31,7 +31,8 @@ export async function POST(req: Request) {
     return Response.json({ text: await transcribe(file) })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
-    if (message === 'not_configured') return Response.json({ error: 'not_configured' }, { status: 503 })
+    const code = errorCode(e)
+    if (code !== 'upstream') return Response.json({ error: code }, { status: 503 })
     console.error('transcribe failed:', message) // ไม่ log เนื้อเสียงหรือข้อความที่ถอดได้
     return Response.json({ error: 'upstream' }, { status: 502 })
   }

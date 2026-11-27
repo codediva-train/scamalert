@@ -1,4 +1,4 @@
-import { checkMessage } from '@/lib/scam'
+import { errorCode, checkMessage } from '@/lib/scam'
 
 const MAX_CHARS = 4000
 
@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     return Response.json(await checkMessage(text, body?.quick === true))
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
-    if (message === 'not_configured') return Response.json({ error: 'not_configured' }, { status: 503 })
+    const code = errorCode(e)
+    if (code !== 'upstream') return Response.json({ error: code }, { status: 503 })
     // ไม่ log ข้อความของผู้ใช้ — log แค่ชนิดของ error
     console.error('check failed:', message)
     return Response.json({ error: 'upstream' }, { status: 502 })

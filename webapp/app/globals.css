@@ -583,3 +583,14 @@ a { text-decoration: none; }
   .action-bar { justify-content: center; }
   .action-bar .primary { max-width: 486px; }
 }
+
+/* popup เมื่อ API key ของ Foundry ใช้ไม่ได้ */
+.key-alert-scrim { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: rgba(0, 0, 0, .55); }
+.key-alert { width: min(420px, 100%); background: var(--bg); color: inherit; border-radius: 22px; padding: 22px 20px 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); border: 2px solid #ff5c5c; }
+.key-alert-icon { font-size: 34px; line-height: 1; margin-bottom: 8px; }
+.key-alert h2 { margin: 0 0 8px; font-size: 20px; line-height: 1.35; }
+.key-alert p { margin: 0 0 8px; line-height: 1.5; }
+.key-alert-label { font-size: 13px; font-weight: 700; opacity: .7; margin-top: 12px !important; }
+.key-alert ol { margin: 0 0 16px; padding-left: 20px; font-size: 14px; line-height: 1.55; }
+.key-alert code { font-size: 12.5px; padding: 1px 5px; border-radius: 6px; background: rgba(127, 127, 127, .18); overflow-wrap: anywhere; }
+.key-alert .primary { width: 100%; min-height: 48px; border: 0; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; }

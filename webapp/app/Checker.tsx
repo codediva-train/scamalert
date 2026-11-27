@@ -14,6 +14,7 @@ const ERRORS: Record<string, string> = {
   bad_image: 'รองรับรูป JPG, PNG และ WebP',
   not_configured: 'ผู้ดูแลยังไม่ได้ตั้งค่า FOUNDRY_API_KEY และ FOUNDRY_RESOURCE',
   upstream: 'เรียกโมเดลไม่สำเร็จ ลองใหม่อีกครั้ง',
+  auth: 'API key ของ Foundry ใช้งานไม่ได้',
   network: 'ไม่มีอินเทอร์เน็ต ลองใหม่อีกครั้ง',
 }
 
@@ -34,12 +35,29 @@ export default function Checker({ initialText }: { initialText: string }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const imageRef = useRef<HTMLInputElement>(null)
   const [toast, setToast] = useState('')
+  const [keyAlert, setKeyAlert] = useState<'' | 'auth' | 'not_configured'>('')
   const [result, setResult] = useState<CheckResult | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [drag, setDrag] = useState(0)
   const dragStart = useRef<number | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // เปิดหน้าเว็บแล้วเช็ก key ทันที (ไม่ใช้โทเคน) ถ้าใช้ไม่ได้ เด้ง popup บอกวิธีแก้ ไม่ต้องรอให้ผู้ใช้กดตรวจก่อน
+  useEffect(() => {
+    fetch('/api/health')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error === 'auth' || d.error === 'not_configured') setKeyAlert(d.error)
+      })
+      .catch(() => {})
+  }, [])
+
+  // error เรื่อง key เป็น popup ที่ต้องกดปิด ส่วน error อื่นเป็น toast ที่หายเอง
+  function showError(code: string | undefined) {
+    if (code === 'auth' || code === 'not_configured') setKeyAlert(code)
+    else setToast(ERRORS[code ?? ''] ?? ERRORS.upstream)
+  }
 
   useEffect(() => {
     if (!toast) return
@@ -114,7 +132,7 @@ export default function Checker({ initialText }: { initialText: string }) {
       })
       const data = await res.json()
       if (!res.ok) {
-        setToast(ERRORS[data.error] ?? ERRORS.upstream)
+        showError(data.error)
         return
       }
       setResult(data)
@@ -138,7 +156,7 @@ export default function Checker({ initialText }: { initialText: string }) {
       fd.append('audio', file)
       const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
       const data = await res.json()
-      if (!res.ok) return setToast(ERRORS[data.error] ?? ERRORS.upstream)
+      if (!res.ok) return showError(data.error)
       if (!data.text) return setToast('ไม่ได้ยินคำพูดในไฟล์นี้')
       setText(data.text)
       await check(data.text)
@@ -161,7 +179,7 @@ export default function Checker({ initialText }: { initialText: string }) {
       fd.append('image', small, 'chat.jpg')
       const res = await fetch('/api/read-image', { method: 'POST', body: fd })
       const data = await res.json()
-      if (!res.ok) return setToast(ERRORS[data.error] ?? ERRORS.upstream)
+      if (!res.ok) return showError(data.error)
       if (!data.text) return setToast('อ่านข้อความในภาพไม่ได้ ลองแคปให้เห็นข้อความชัด ๆ')
       setText(data.text)
       await check(data.text)
@@ -349,6 +367,27 @@ export default function Checker({ initialText }: { initialText: string }) {
       <div className={`toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">
         {toast}
       </div>
+
+      {keyAlert && (
+        <div className="key-alert-scrim">
+          <div className="key-alert" role="alertdialog" aria-modal="true" aria-labelledby="key-alert-title" aria-describedby="key-alert-body">
+            <div className="key-alert-icon" aria-hidden>🔑</div>
+            <h2 id="key-alert-title">{keyAlert === 'auth' ? 'API key ของ Foundry ใช้งานไม่ได้' : 'ยังไม่ได้ตั้งค่า API key ของ Foundry'}</h2>
+            <div id="key-alert-body">
+              <p>ตอนนี้แอปเรียกโมเดล AI ไม่ได้ จึงยังตรวจข้อความไม่ได้</p>
+              <p className="key-alert-label">สำหรับผู้ดูแลแอป</p>
+              <ol>
+                <li>ตรวจ <code>FOUNDRY_API_KEY</code> และ <code>FOUNDRY_RESOURCE</code> ใน <code>webapp/.env.local</code> หรือ Environment variables ของ App Service</li>
+                <li>หยุดแล้วรัน <code>npm run dev</code> ใหม่ (บน Azure: กด Apply แล้วรอแอปรีสตาร์ต)</li>
+                <li>ถ้าเคยใช้ได้ key อาจถูกเปลี่ยน หรือถูกปิดชั่วคราวจากการคุมงบ</li>
+              </ol>
+            </div>
+            <button type="button" className="primary" onClick={() => setKeyAlert('')} autoFocus>
+              ตกลง
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={`scrim ${sheetOpen ? 'show' : ''}`} onClick={closeSheet} aria-hidden />
       <section

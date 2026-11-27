@@ -27,6 +27,15 @@ export type CheckResult = Triage & {
   domains: { domain: string; blocklisted: boolean }[]
 }
 
+// แยก error ให้หน้าเว็บรู้ว่าควรบอกผู้ใช้อย่างไร
+// auth = Azure ปฏิเสธ key: 401 คือ key ผิด, 403 คือปิดการใช้ key หรือปิด public network (เช่น ระบบคุมงบปิดไว้)
+export type ApiError = 'not_configured' | 'auth' | 'upstream'
+export function errorCode(e: unknown): ApiError {
+  if (e instanceof Error && e.message === 'not_configured') return 'not_configured'
+  const status = (e as { status?: number } | null)?.status
+  return status === 401 || status === 403 ? 'auth' : 'upstream'
+}
+
 const TRIAGE_MODEL = process.env.TRIAGE_MODEL || 'gpt-5.4-mini'
 const DEEP_MODEL = process.env.DEEP_MODEL || 'gpt-5.5'
 
@@ -111,6 +120,20 @@ const BLOCKLIST = new Set(['th-parcel-pay.example', 'bank-verify-th.example', 'p
 export function findDomains(text: string) {
   const found = text.toLowerCase().match(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/g) ?? []
   return [...new Set(found)].map((domain) => ({ domain, blocklisted: BLOCKLIST.has(domain) }))
+}
+
+// ตรวจว่า key ใช้ได้ไหม ด้วยการขอรายชื่อโมเดล (ไม่ใช้โทเคน ไม่เสียเงิน) จำผลไว้ 60 วินาที
+let health: { at: number; result: ApiError | 'ok' } | null = null
+export async function checkKey(): Promise<ApiError | 'ok'> {
+  if (health && Date.now() - health.at < 60_000) return health.result
+  let result: ApiError | 'ok' = 'ok'
+  try {
+    await getClient().models.list()
+  } catch (e) {
+    result = errorCode(e)
+  }
+  health = { at: Date.now(), result }
+  return result
 }
 
 async function triage(text: string): Promise<Triage> {
