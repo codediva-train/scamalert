@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Deploy แอปนี้ขึ้น Azure App Service แผน Free (F1, Linux)
 # ใช้: APP_NAME=<ชื่อไม่ซ้ำใครทั้งโลก> ./deploy-azure.sh
-# ต้องมี: az login แล้ว, Node 22, ไฟล์ .env.local ที่มี FOUNDRY_API_KEY และ FOUNDRY_RESOURCE
+# ต้องมี: az login แล้ว (ใน Codespace ใช้ az login --use-device-code), Node 22, zip,
+#        ไฟล์ .env.local ที่มี FOUNDRY_API_KEY และ FOUNDRY_RESOURCE
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -9,6 +10,9 @@ cd "$(dirname "$0")"
 RG="${RG:-rg-scam-check}"
 LOCATION="${LOCATION:-southeastasia}"
 PLAN="${APP_NAME}-plan"
+
+command -v az >/dev/null || { echo "ไม่พบ Azure CLI (az) — ใน Codespace ของแล็บมีให้แล้ว ถ้ารันที่เครื่องตัวเองให้ติดตั้งก่อน"; exit 1; }
+command -v zip >/dev/null || { echo "ไม่พบคำสั่ง zip — ติดตั้งด้วย: sudo apt-get install -y zip"; exit 1; }
 
 # อ่าน key จาก .env.local แทนการพิมพ์ในคำสั่ง (จะได้ไม่ค้างใน shell history)
 set -a; source .env.local; set +a

@@ -1,22 +1,17 @@
 {
-  "name": "Cyber Challenge Lab",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "name": "Cyber Challenge Lab — ScamAlert",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+    "ghcr.io/devcontainers/features/azure-cli:1": {}
   },
   "customizations": {
     "vscode": {
-      "extensions": ["ms-python.python", "ms-toolsai.jupyter"],
-      "settings": {
-        "files.autoSave": "afterDelay",
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "jupyter.kernels.excludePythonEnvironments": ["/usr/bin/python3", "/bin/python3"]
-      }
+      "settings": { "files.autoSave": "afterDelay" }
     }
   },
   "onCreateCommand": {
-    "python": "pip install --no-cache-dir -r requirements.txt ipykernel && python -m ipykernel install --user --name python3 --display-name 'Python 3.11 (lab)'",
-    "webapp": "cd webapp && npm ci"
+    "webapp": "cd webapp && npm ci",
+    "zip": "command -v zip >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq zip)"
   },
   "forwardPorts": [3000],
   "portsAttributes": {

@@ -63,7 +63,7 @@ key อยู่ใน `.env.local` ฝั่ง server เท่านั้น
 ## Deploy ขึ้น Azure App Service (ฟรี)
 
 ```bash
-az login
+az login --use-device-code        # ใน Codespace ใช้แบบ device code
 APP_NAME=scam-check-<ชื่อคุณ> ./deploy-azure.sh
 ```
 
