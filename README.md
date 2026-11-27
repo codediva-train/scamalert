@@ -1,122 +1,310 @@
-# Cyber Challenge Lab — ScamAlert
+<div align="center">
 
-แอปเช็กข้อความและสายหลอกลวงภาษาไทย ด้วย AI บน Microsoft Foundry
-เขียนด้วย Next.js เป็นเว็บที่ติดตั้งลงมือถือได้ (PWA) และแพ็กขึ้น Store ได้
+<img src="docs/banner.webp" alt="ScamAlert — เช็กก่อนเชื่อ · AI ช่วยดูข้อความและสายหลอกลวง" width="100%">
 
-แล็บสำหรับ Online Workshop 2 · Thailand Cyber & Digital Innovation Challenge
-เสาร์ 28 พฤศจิกายน 2569 · 09.00–12.00 น. · อบรมออนไลน์ผ่าน Google Meet
+<br>
 
-## ในนี้มีอะไร
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/codediva-train/scamalert?quickstart=1)
 
-| โฟลเดอร์ | คืออะไร |
-|---|---|
-| `webapp/` | **แอป ScamAlert** (Next.js) ตรวจได้ 4 ทาง: วางข้อความ · แคปหน้าจอ LINE / Facebook / TikTok · ไฟล์เสียง · ฟังสายสด รายละเอียดทั้งหมดอยู่ใน [`webapp/README.md`](webapp/README.md) |
-| `.devcontainer/` | ตั้งค่า Codespaces: Node 22 และติดตั้งแพ็กเกจของแอปให้ตอนสร้าง |
+![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![Node 22](https://img.shields.io/badge/Node-22-5FA04E?logo=nodedotjs&logoColor=white)
+![Microsoft Foundry](https://img.shields.io/badge/Microsoft_Foundry-GPT--5.4_·_5.5-0078D4?logo=microsoftazure&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-ติดตั้งลงมือถือได้-5A0FC8?logo=pwa&logoColor=white)
+![ภาษาไทย](https://img.shields.io/badge/ภาษา-ไทย-FFB900)
 
-## ก่อนวันอบรม (pre-work) — ต้องมี Azure ของตัวเอง
+**แล็บ Online Workshop 2 · Thailand Cyber & Digital Innovation Challenge**<br>
+เสาร์ 28 พฤศจิกายน 2569 · 09.00–12.00 น. · ออนไลน์ผ่าน Google Meet
 
-โครงการนี้ไม่มีผู้สนับสนุนค่าใช้จ่าย Azure ผู้เรียนสร้างบัญชีและ resource เอง (ทีมละหนึ่งบัญชีก็พอ)
+[🚀 เริ่มใน 5 นาที](#-เริ่มใน-5-นาที) · [🎯 ภารกิจ 11 ขั้น](#-ภารกิจ-11-ขั้น) · [🧠 แอปทำงานยังไง](#-แอปทำงานยังไง) · [🗂️ 14 ประเภทคดี](#️-14-ประเภทคดีออนไลน์) · [💸 กันเสียเงิน](#-กันไม่ให้เสียเงิน) · [English](#english)
 
-1. **สมัคร Azure free account** ที่ https://azure.microsoft.com/free
-   ต้องมีบัญชี Microsoft หรือ GitHub, เบอร์โทรศัพท์ และบัตรเครดิตหรือเดบิตที่ไม่ใช่แบบเติมเงิน
-   ตอนสมัครระบบอาจกันวงเงินราว 1 ดอลลาร์ชั่วคราวแล้วคืนให้ (ไม่ใช่การตัดเงิน)
-2. **สร้าง project ใน Microsoft Foundry** ที่ https://ai.azure.com ระบบจะสร้าง Foundry resource ให้พร้อมกัน
-   ตั้งไว้ใน resource group แยกของแล็บ จะได้ลบทิ้งทั้งกลุ่มได้ง่ายหลังอบรม
-3. **Deploy โมเดล** จากแค็ตตาล็อกของ Foundry แบบ Global Standard และตั้งชื่อ deployment ให้ตรงกับชื่อโมเดล
-   - `gpt-5.4-mini` — คัดกรองทุกข้อความ และอ่านข้อความจากภาพแคปหน้าจอ
-   - `gpt-5.5` — วิเคราะห์ละเอียดเฉพาะเคสสแกม · ถ้าไม่มีโควตา ให้ deploy `gpt-5.4` แทน แล้วแก้ `DEEP_MODEL` ใน `.env.local`
-   - `gpt-4o-transcribe` (ไม่บังคับ) — ถอดเสียงสำหรับไฟล์เสียงและฟังสาย ยังเป็น Preview และมีเฉพาะบาง region
-     (เช่น East US 2, Sweden Central) ถ้า deploy ไม่ได้ แอปยังตรวจข้อความและแคปหน้าจอได้ปกติ
-   - ถ้าโมเดลไหนขึ้นว่าไม่มีโควตาใน region นั้น ให้ลองสร้าง project ใน region อื่น
-4. **คัดลอก key และ endpoint** จากหน้า *Keys and Endpoint* ของ resource
-   ชื่อ resource คือส่วนหน้าของ endpoint เช่น `https://my-scam-lab.openai.azure.com/` ชื่อคือ `my-scam-lab`
-5. **ตั้งงบและแจ้งเตือน** ที่ Cost Management → Budgets ก่อนเริ่มใช้งาน
+</div>
 
-## เริ่มใช้งานในวันอบรม
+---
 
-1. กดปุ่ม **Code** สีเขียวด้านบน แล้วเลือกแท็บ **Codespaces** → **Create codespace on main** รอ 2–3 นาที
-   (ระบบติดตั้งแพ็กเกจของแอปให้ระหว่างสร้าง)
-2. ถ้า VS Code ถามว่า *Do you trust the authors of the files in this folder?* ให้กด **Trust Folder & Continue**
-3. เปิด Terminal (เมนู ☰ → Terminal → New Terminal) แล้วพิมพ์
+## ✨ ScamAlert คืออะไร
+
+แอปเว็บที่ช่วยคนไทย **เช็กก่อนเชื่อ** — วางข้อความ แคปหน้าจอ หรืออัดเสียงที่น่าสงสัย แล้ว AI บอกว่าเป็นสแกมไหม เป็นคดีประเภทไหน และควรทำอะไรต่อ
+สร้างด้วย **Next.js** เป็น **PWA** ที่กดติดตั้งลงมือถือได้เหมือนแอป และแพ็กขึ้น Store ได้ด้วย PWABuilder
+
+<div align="center">
+<img src="docs/showcase.webp" alt="หน้าจอแอป ScamAlert: หน้าแรก, ผลตรวจ, 14 ประเภทคดี, ฟังสายสด" width="100%">
+</div>
+
+| | ตรวจจาก | ใช้ยังไง |
+|:-:|---|---|
+| 💬 | **ข้อความ** | วางจาก SMS, LINE, อีเมล · บน Android กด "แชร์" เข้าแอปได้เลย |
+| 📸 | **แคปหน้าจอ** | แชต LINE / Messenger, โพสต์และโฆษณา Facebook, TikTok, IG — AI อ่านข้อความในภาพให้ |
+| 🎙️ | **ไฟล์เสียง** | ข้อความเสียงจาก LINE หรือไฟล์อัดสาย |
+| 📞 | **ฟังสายสด** | เปิดลำโพงโทรศัพท์ วางใกล้ **อีกเครื่อง** ที่เปิดแอปนี้ — เตือนทันทีเมื่อเริ่มเข้าข่ายสแกม |
+
+> [!NOTE]
+> **ทำไมฟังสายต้องใช้อีกเครื่อง?** ระหว่างโทร ทั้ง Android และ iOS จะปิดไมค์ของแอปอื่นทุกตัว
+> แอปจะขึ้นเตือนเองถ้าไมค์เงียบเกิน 10 วินาที
+
+---
+
+## 🚀 เริ่มใน 5 นาที
+
+> [!IMPORTANT]
+> ต้องทำ **[pre-work](#-ก่อนวันอบรม-pre-work)** ให้เสร็จก่อน — มี Azure ของตัวเอง พร้อม key และชื่อ resource
+
+```mermaid
+flowchart LR
+    A["① กดปุ่ม<br/>Open in Codespaces"] --> B["② cp .env.example<br/>.env.local"]
+    B --> C["③ ใส่ key +<br/>ชื่อ resource"]
+    C --> D["④ npm run dev"]
+    D --> E["⑤ แอปเปิดเอง 🎉"]
+```
+
+1. กดปุ่ม **[Open in GitHub Codespaces](https://codespaces.new/codediva-train/scamalert?quickstart=1)** ด้านบน → **Create codespace** รอ 2–3 นาที
+2. ถ้าถามว่า *Do you trust the authors…?* กด **Trust Folder & Continue**
+3. เปิด Terminal (☰ → Terminal → New Terminal) แล้วพิมพ์
 
    ```bash
    cd webapp
    cp .env.example .env.local
    ```
 
-4. เปิดไฟล์ `webapp/.env.local` ใส่ `FOUNDRY_API_KEY` และ `FOUNDRY_RESOURCE` ของคุณ แล้วบันทึก
-5. กลับไปที่ Terminal พิมพ์ `npm run dev` แอปจะเปิดในแท็บใหม่ให้เอง (หรือดูที่แท็บ **Ports** → พอร์ต 3000)
+4. เปิดไฟล์ `webapp/.env.local` ใส่ค่าของคุณ แล้วกดบันทึก
 
-คู่มือทำตามทีละขั้น: https://training.codediva.co/workshops/cyber-challenge (รหัสเข้าดูแจ้งในห้องอบรม)
-อยากเปิดบนมือถือและติดตั้งเป็นแอป: deploy ขึ้น Azure App Service แผนฟรีด้วย `webapp/deploy-azure.sh` (ดู `webapp/README.md`)
+   ```ini
+   FOUNDRY_API_KEY=วาง-key-ของคุณ
+   FOUNDRY_RESOURCE=ชื่อ-resource   # เช่น my-scam-lab
+   ```
 
-## กันไม่ให้เสียเงิน (อ่านให้ครบ)
+5. กลับไปที่ Terminal พิมพ์ `npm run dev` → แอปเปิดในแท็บใหม่ (หรือดูแท็บ **Ports** → พอร์ต 3000)
 
-- **Free account ไม่ตัดเงินเอง** เมื่อครบ 30 วันหรือใช้เครดิตหมด subscription จะถูกปิดใช้งาน ถ้าคุณไม่กด Upgrade
-- **อย่ากด Upgrade to pay-as-you-go** ถ้ายังไม่ตั้งใจจ่ายเงินจริง
-- **หลังอบรม ถ้าจะไม่ทำต่อ ลบ resource group ของแล็บ** Azure portal → Resource groups → เลือกกลุ่ม → Delete resource group
-- **ถ้าจะเลิกใช้ Azure** Cost Management + Billing → Subscriptions → เลือก subscription → Cancel subscription
-- **ห้าม commit key ลง repository** และห้ามวาง key ในแชต key ที่หลุดคือเงินในบัตรของคุณ (`.env.local` ถูกกันไม่ให้ commit แล้ว)
-- **อย่าตั้งพอร์ต 3000 ใน Codespaces เป็น Public** ใครมีลิงก์ก็เรียกโมเดลด้วย key ของคุณได้
-- หยุด Codespace ที่ https://github.com/codespaces เมื่อเลิกใช้
-
-ข้อความตัวอย่างทั้งหมดแต่งขึ้นเพื่อการสอน เบอร์โทร ลิงก์ และเลขบัญชีเป็นของปลอม ภาพคนในแอปสร้างด้วย AI
+> [!TIP]
+> ไม่รู้จะลองอะไร? แตะชิป **📚 ทั้ง 14 ประเภท** ในแอป เลือกการ์ด แล้วกด **ตรวจข้อความ**
 
 ---
 
-วิทยากร นายเอกพงษ์ ขัติยะ · กรรมการผู้จัดการ บริษัท โค้ดดีวา จำกัด
+## 🎯 ภารกิจ 11 ขั้น
+
+ทำตามลำดับ ติ๊กในใจทีละข้อ ✅ — คู่มือพร้อมภาพทีละขั้นอยู่ที่ **[training.codediva.co/workshops/cyber-challenge](https://training.codediva.co/workshops/cyber-challenge)** (รหัสแจ้งในห้อง)
+
+<table>
+<tr><th>#</th><th>ภารกิจ</th><th>ได้อะไร</th></tr>
+<tr><td>1</td><td>🖥️ เปิด Codespace</td><td>เครื่องพร้อม Node 22 + Azure CLI</td></tr>
+<tr><td>2</td><td>🔐 ตั้ง <code>.env.local</code></td><td>key อยู่ฝั่ง server ไม่หลุดไปเบราว์เซอร์</td></tr>
+<tr><td>3</td><td>▶️ <code>npm run dev</code></td><td>แอปรันบนพอร์ต 3000</td></tr>
+<tr><td>4</td><td>🔎 ตรวจข้อความแรก</td><td>เห็นผลสองด่านครั้งแรก</td></tr>
+<tr><td>5</td><td>📖 อ่าน <code>lib/scam.ts</code></td><td>เข้าใจ prompt + JSON schema</td></tr>
+<tr><td>6</td><td>🗂️ ลอง 14 ประเภทคดี</td><td>เห็นว่า AI จัดประเภทแม่นแค่ไหน</td></tr>
+<tr><td>7</td><td>✍️ ปรับ <code>TRIAGE_PROMPT</code></td><td>แก้เคสที่ AI ทายผิด</td></tr>
+<tr><td>8</td><td>🧠 ด่านที่สอง (gpt-5.5)</td><td>คำอธิบาย + สิ่งที่ควรทำต่อ</td></tr>
+<tr><td>9</td><td>📸🎙️ แคปจอ + เสียง</td><td>ตรวจได้ทุกช่องทาง</td></tr>
+<tr><td>10</td><td>📏 วัดผล</td><td>ความแม่น + ค่าใช้จ่ายต่อข้อความ</td></tr>
+<tr><td>11</td><td>☁️ Deploy ขึ้น Azure</td><td>ลิงก์จริงเปิดบนมือถือ + ติดตั้งเป็นแอป</td></tr>
+</table>
+
+<details>
+<summary>💡 <b>คำใบ้ภารกิจ 5 — อ่านโค้ดตรงไหนก่อนดี</b></summary>
+
+<br>
+
+เปิด [`webapp/lib/scam.ts`](webapp/lib/scam.ts) แล้วหา 3 อย่างนี้
+
+- `TRIAGE_PROMPT` — คำสั่งที่บอก gpt-5.4-mini ว่าให้ตัดสินยังไง
+- `TRIAGE_FORMAT` — JSON schema ที่บังคับให้ตอบเป็นโครงสร้างเดิมทุกครั้ง (`strict: true`)
+- `checkMessage()` — ตรงนี้คือ "สองด่าน": ด่านแรกทุกข้อความ ด่านสองเฉพาะสแกม
+
+</details>
+
+<details>
+<summary>💡 <b>คำใบ้ภารกิจ 7 — ปรับ prompt ยังไงให้แม่นขึ้น</b></summary>
+
+<br>
+
+1. ลองตัวอย่างทั้ง 16 ข้อในแอป จดเคสที่ทาย **ผิด**
+2. เพิ่มกฎใน `TRIAGE_PROMPT` ให้ตรงจุด เช่น *"ข้อความที่ขอให้โอนเงินก่อนรับของ ถือเป็นสแกมเสมอ"*
+3. บันทึกไฟล์ — `npm run dev` โหลดใหม่ให้เอง — แล้วลองเคสเดิมอีกรอบ
+
+> ทายผิดแบบ **"สแกมแต่บอกว่าปกติ"** อันตรายกว่า **"ปกติแต่บอกว่าสแกม"** มาก — ตัดสินใจให้ได้ว่าจะยอมพลาดด้านไหน แล้วเขียนเหตุผลลง Concept Proposal
+
+</details>
+
+<details>
+<summary>💡 <b>คำใบ้ภารกิจ 10 — ค่าใช้จ่ายต่อข้อความ</b></summary>
+
+<br>
+
+| โมเดล | เข้า / ออก (ต่อ 1 ล้านโทเคน) | ใช้ตอนไหน |
+|---|---|---|
+| `gpt-5.4-mini` | $0.75 / $4.50 | ทุกข้อความ |
+| `gpt-5.5` | $5 / $30 | เฉพาะสแกม |
+| `gpt-5.4` | $2.50 / $15 | ตัวสำรองถ้า gpt-5.5 ไม่มีโควตา |
+
+ดูยอดจริงที่ Azure portal → Cost Management · ด่านแรกถูกกว่าด่านสองราว 7 เท่า — นี่คือเหตุผลที่แยกสองด่าน
+
+</details>
+
+<details>
+<summary>💡 <b>คำใบ้ภารกิจ 11 — deploy ขึ้น Azure App Service (ฟรี)</b></summary>
+
+<br>
+
+```bash
+az login --use-device-code
+cd webapp
+APP_NAME=scam-check-<ชื่อทีม> ./deploy-azure.sh
+```
+
+ได้ลิงก์ `https://scam-check-<ชื่อทีม>.azurewebsites.net` → เปิดบนมือถือ → **ติดตั้งแอป** (Android: เมนู ⋮ · iPhone: แชร์ → เพิ่มไปยังหน้าจอโฮม)
+อยากขึ้น Store: ใส่ลิงก์ใน [pwabuilder.com](https://www.pwabuilder.com) · รายละเอียดใน [`webapp/README.md`](webapp/README.md)
+
+</details>
+
+---
+
+## 🧠 แอปทำงานยังไง
+
+```mermaid
+flowchart TD
+    IN1["💬 ข้อความ"] --> T
+    IN2["📸 แคปหน้าจอ"] -->|"gpt-5.4-mini อ่านข้อความในภาพ"| T
+    IN3["🎙️ เสียง / 📞 ฟังสาย"] -->|"gpt-4o-transcribe ถอดเสียง"| T
+    T{"ด่าน 1 · gpt-5.4-mini<br/>สแกม / ปกติ / ข้อมูลบิดเบือน<br/>+ ประเภทคดี"}
+    T -->|"ปกติ · บิดเบือน"| R["📱 ผลตรวจ"]
+    T -->|"สแกม"| D["ด่าน 2 · gpt-5.5<br/>อธิบาย + ควรทำอะไรต่อ"]
+    D --> R
+    style T fill:#FFB900,color:#0A2342,stroke:#0A2342
+    style D fill:#E5484D,color:#fff,stroke:#E5484D
+    style R fill:#0A2342,color:#fff,stroke:#0A2342
+```
+
+- 🔐 **key อยู่ฝั่ง server เท่านั้น** (`app/api/*`) เบราว์เซอร์ไม่เคยเห็น
+- 💰 **สองด่านประหยัดเงิน**: ทุกข้อความใช้โมเดลถูก เฉพาะสแกมจึงส่งต่อโมเดลแพง
+- 🧾 **JSON schema แบบ strict**: โมเดลตอบโครงสร้างเดิมทุกครั้ง โค้ดอ่านต่อได้ไม่พัง
+- 🙈 **ไม่เก็บข้อความ ภาพ หรือเสียง** และไม่ log เนื้อหา
+
+<details>
+<summary>📁 <b>โครงไฟล์สำคัญ</b></summary>
+
+<br>
+
+```text
+webapp/
+├── lib/scam.ts                 ← 🧠 prompt, schema, เรียกโมเดล (ฝั่ง server)
+├── lib/samples.ts              ← 🗂️ 14 ประเภทคดี + ข้อความตัวอย่าง
+├── app/api/check/route.ts      ← POST {text} → ผลตรวจ
+├── app/api/read-image/route.ts ← POST รูป → ข้อความ
+├── app/api/transcribe/route.ts ← POST เสียง → ข้อความ
+├── app/Checker.tsx             ← หน้าจอหลัก + bottom sheet ผลตรวจ
+├── app/LiveListen.tsx          ← โหมดฟังสาย
+├── app/manifest.ts             ← ตั้งค่า PWA (ชื่อแอป ไอคอน แชร์เข้าแอป)
+├── .env.example                ← แม่แบบ .env.local
+└── deploy-azure.sh             ← deploy ขึ้น App Service แผนฟรี
+```
+
+</details>
+
+---
+
+## 🗂️ 14 ประเภทคดีออนไลน์
+
+แอปจัดประเภทตาม **ระบบแจ้งความออนไลน์** (thaipoliceonline.go.th) — เอาไปเลือกประเภทตอนแจ้งความได้เลย
+สถิติ 1 มี.ค. 2565 – 10 พ.ย. 2566 · รวม **361,655 คดี**
+
+<table>
+<tr>
+<td align="center" width="25%"><img src="webapp/public/img/types/01.webp" width="100%"><br><b>1 · ซื้อขายสินค้า</b><br><sub>ไม่เป็นขบวนการ · 145,748</sub></td>
+<td align="center" width="25%"><img src="webapp/public/img/types/02.webp" width="100%"><br><b>2 · โอนเงินเพื่อทำงาน</b><br><sub>47,996</sub></td>
+<td align="center" width="25%"><img src="webapp/public/img/types/03.webp" width="100%"><br><b>3 · หลอกให้กู้เงิน</b><br><sub>40,251</sub></td>
+<td align="center" width="25%"><img src="webapp/public/img/types/04.webp" width="100%"><br><b>4 · หลอกลงทุน</b><br><sub>29,808</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="webapp/public/img/types/05.webp" width="100%"><br><b>5 · คอลเซ็นเตอร์</b><br><sub>25,938</sub></td>
+<td align="center"><img src="webapp/public/img/types/06.webp" width="100%"><br><b>6 · แอบอ้างยืมเงิน</b><br><sub>13,987</sub></td>
+<td align="center"><img src="webapp/public/img/types/07.webp" width="100%"><br><b>7 · โอนเพื่อรับรางวัล</b><br><sub>11,234</sub></td>
+<td align="center"><img src="webapp/public/img/types/08.webp" width="100%"><br><b>8 · แอปควบคุมเครื่อง</b><br><sub>9,610</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="webapp/public/img/types/09.webp" width="100%"><br><b>9 · ซื้อขายสินค้า</b><br><sub>เป็นขบวนการ · 8,504</sub></td>
+<td align="center"><img src="webapp/public/img/types/10.webp" width="100%"><br><b>10 · เจาะระบบ/บัญชี</b><br><sub>3,805</sub></td>
+<td align="center"><img src="webapp/public/img/types/11.webp" width="100%"><br><b>11 · แชร์ลูกโซ่</b><br><sub>3,196</sub></td>
+<td align="center"><img src="webapp/public/img/types/12.webp" width="100%"><br><b>12 · หลอกให้รัก</b><br><sub>2,931</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="webapp/public/img/types/13.webp" width="100%"><br><b>13 · สินทรัพย์ดิจิทัล</b><br><sub>2,073</sub></td>
+<td align="center"><img src="webapp/public/img/types/14.webp" width="100%"><br><b>14 · Ransomware</b><br><sub>115</sub></td>
+<td colspan="2" align="center">📞 <b>โดนหลอกแล้ว?</b><br>โทร <b>1441</b> สายด่วนตำรวจไซเบอร์<br>แจ้งความที่ <a href="https://thaipoliceonline.go.th">thaipoliceonline.go.th</a></td>
+</tr>
+</table>
+
+---
+
+## 📝 ก่อนวันอบรม (pre-work)
+
+> [!WARNING]
+> โครงการนี้ **ไม่มีผู้สนับสนุนค่า Azure** ผู้เรียนสร้างบัญชีและ resource เอง (ทีมละบัญชีก็พอ)
+
+- [ ] **สมัคร Azure free account** ที่ https://azure.microsoft.com/free — ต้องมีบัญชี Microsoft หรือ GitHub, เบอร์โทร และบัตรเครดิต/เดบิตที่ไม่ใช่แบบเติมเงิน (อาจกันวงเงิน ~1 ดอลลาร์ชั่วคราวแล้วคืน)
+- [ ] **สร้าง project ใน Microsoft Foundry** ที่ https://ai.azure.com — ตั้งใน resource group แยก จะลบทิ้งง่ายหลังอบรม
+- [ ] **Deploy โมเดล** แบบ Global Standard และตั้งชื่อ deployment ให้ตรงกับชื่อโมเดล
+
+  | deployment | ใช้ทำอะไร | |
+  |---|---|---|
+  | `gpt-5.4-mini` | คัดกรอง + อ่านแคปหน้าจอ | **ต้องมี** |
+  | `gpt-5.5` | วิเคราะห์ละเอียด (ไม่มีโควตา → ใช้ `gpt-5.4` แล้วแก้ `DEEP_MODEL`) | **ต้องมี** |
+  | `gpt-4o-transcribe` | ถอดเสียง · Preview · มีเฉพาะบาง region เช่น East US 2, Sweden Central | ไม่บังคับ |
+
+- [ ] **คัดลอก key และ endpoint** จากหน้า *Keys and Endpoint* — ชื่อ resource คือส่วนหน้าของ endpoint เช่น `https://my-scam-lab.openai.azure.com/` → `my-scam-lab`
+- [ ] **ตั้งงบและแจ้งเตือน** ที่ Cost Management → Budgets
+
+---
+
+## 💸 กันไม่ให้เสียเงิน
+
+> [!CAUTION]
+> **key ที่หลุดคือเงินในบัตรของคุณ** — ห้าม commit, ห้ามวางในแชต, **ห้ามตั้งพอร์ต 3000 ใน Codespaces เป็น Public**
+> (`.env.local` ถูกกันไม่ให้ commit ไว้แล้ว)
+
+- ✅ **Free account ไม่ตัดเงินเอง** — ครบ 30 วันหรือเครดิตหมด subscription จะถูกปิด ถ้าคุณไม่กด Upgrade
+- 🚫 **อย่ากด Upgrade to pay-as-you-go** ถ้ายังไม่ตั้งใจจ่ายเงินจริง
+- 🚫 **App Service: อย่าเปิด Always On และอย่ากด Scale up** แผนฟรีจะกลายเป็นแผนเสียเงิน
+- 🧹 **หลังอบรม** ลบ resource group ของแล็บ: Azure portal → Resource groups → Delete resource group
+- ⏸️ **หยุด Codespace** ที่ https://github.com/codespaces เมื่อเลิกใช้
+
+---
+
+<div align="center">
+
+**วิทยากร** นายเอกพงษ์ ขัติยะ · กรรมการผู้จัดการ บริษัท โค้ดดีวา จำกัด<br>
 Microsoft Partner · Microsoft AI Cloud Partner Program
+
+<sub>ข้อความตัวอย่างทั้งหมดแต่งขึ้นเพื่อการสอน เบอร์โทร ลิงก์ และเลขบัญชีเป็นของปลอม · ภาพคนในแอปสร้างด้วย AI ไม่ใช่บุคคลจริง</sub>
+
+</div>
 
 ---
 
 ## English
 
-A hands-on lab: **ScamAlert**, a Next.js app that checks Thai scam messages and calls with AI models on Microsoft Foundry.
-It installs on phones as a PWA and can be packaged for app stores.
-Online Workshop 2 · Thailand Cyber & Digital Innovation Challenge · Saturday 28 November 2026 · online via Google Meet
+<details>
+<summary><b>ScamAlert in English — click to expand</b></summary>
 
-### What's here
+<br>
 
-| Folder | What it is |
-|---|---|
-| `webapp/` | **The ScamAlert app** (Next.js). Four ways to check: paste text · screenshot of LINE / Facebook / TikTok · audio file · live call. Full details in [`webapp/README.md`](webapp/README.md) (Thai) |
-| `.devcontainer/` | Codespaces setup: Node 22, installs the app's packages on creation |
+**ScamAlert** is a Next.js PWA that checks Thai scam messages and calls with GPT models on Microsoft Foundry:
+paste text, upload a screenshot (LINE, Facebook, TikTok…), upload audio, or listen to a call on speaker from a second device.
+Results name the police online-report case type (14 types) and what to do next. Built for Online Workshop 2 of the
+Thailand Cyber & Digital Innovation Challenge, Saturday 28 November 2026, online via Google Meet.
 
-### Before the day (pre-work): your own Azure
+**Pre-work (your own Azure, no sponsor):** create an Azure free account → a Microsoft Foundry project in its own resource
+group → deploy `gpt-5.4-mini` and `gpt-5.5` (or `gpt-5.4`) as Global Standard, optionally `gpt-4o-transcribe` for audio
+(preview, only some regions) → copy the key and resource name → set a budget.
 
-There is no sponsor for Azure costs; each learner (or one person per team) sets up their own.
+**On the day:**
 
-1. **Create an Azure free account** at https://azure.microsoft.com/free — you need a Microsoft or GitHub account,
-   a phone number and a non-prepaid credit or debit card. Sign-up may place a temporary hold of about USD 1, which is released.
-2. **Create a project in Microsoft Foundry** at https://ai.azure.com (it creates the Foundry resource too),
-   in a resource group of its own so you can delete it in one go afterwards.
-3. **Deploy models** from the Foundry catalogue as Global Standard, naming each deployment after the model:
-   `gpt-5.4-mini` (triage and reading screenshots) and `gpt-5.5` (deep analysis; if it has no quota, deploy `gpt-5.4`
-   and change `DEEP_MODEL` in `.env.local`). Optional: `gpt-4o-transcribe` for audio — it is in preview and only in some
-   regions (e.g. East US 2, Sweden Central); without it, text and screenshots still work.
-4. **Copy the key and endpoint** from the resource's *Keys and Endpoint* page. The resource name is the first part of the
-   endpoint: for `https://my-scam-lab.openai.azure.com/` it is `my-scam-lab`.
-5. **Set a budget and alert** under Cost Management → Budgets before you start.
+1. Click **Open in GitHub Codespaces** above → Create codespace (2–3 min) → *Trust Folder & Continue*
+2. `cd webapp && cp .env.example .env.local`, put `FOUNDRY_API_KEY` and `FOUNDRY_RESOURCE` in `.env.local`
+3. `npm run dev` — the app opens on port 3000
+4. Last mission: `az login --use-device-code` then `APP_NAME=scam-check-<team> ./deploy-azure.sh` (free App Service tier)
 
-### On the day
+**Avoiding charges:** a free account never charges you on its own; don't press Upgrade; never commit your key or make
+port 3000 Public; don't enable Always On or scale up App Service; delete the resource group and stop the Codespace afterwards.
 
-1. Click the green **Code** button → **Codespaces** → **Create codespace on main** (2–3 minutes; it installs the app's packages)
-2. If VS Code asks *Do you trust the authors of the files in this folder?*, click **Trust Folder & Continue**
-3. Open a terminal and run `cd webapp && cp .env.example .env.local`
-4. Put your `FOUNDRY_API_KEY` and `FOUNDRY_RESOURCE` in `webapp/.env.local` and save
-5. Run `npm run dev`; the app opens in a new tab (or see the **Ports** tab, port 3000)
+Step-by-step guide: https://training.codediva.co/en/workshops/cyber-challenge · App details: [`webapp/README.md`](webapp/README.md)
 
-Step-by-step guide: https://training.codediva.co/en/workshops/cyber-challenge (password given in the session)
-To use it on a phone and install it as an app, deploy to the free Azure App Service tier with `webapp/deploy-azure.sh`.
-
-### Avoiding charges
-
-- **A free account never charges you on its own**: after 30 days or when the credit runs out, the subscription is disabled unless you upgrade
-- **Do not press Upgrade to pay-as-you-go** unless you mean to pay
-- **After the workshop, delete the lab's resource group**: Azure portal → Resource groups → your group → Delete resource group
-- **Leaving Azure?** Cost Management + Billing → Subscriptions → your subscription → Cancel subscription
-- **Never commit your key** or paste it in chat; a leaked key spends money on your card (`.env.local` is already git-ignored)
-- **Do not make port 3000 Public in Codespaces**: anyone with the link could call the models on your key
-- Stop your Codespace at https://github.com/codespaces when you are done
-
-The sample messages are made up for teaching; every number, link and account in them is fake. People in the app's images are AI-generated.
+</details>
