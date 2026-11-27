@@ -2,6 +2,11 @@
 // ไฟล์นี้ถูก import จาก API route เท่านั้น จึงรันฝั่ง server และ key ไม่เคยไปถึงเบราว์เซอร์
 import OpenAI, { AzureOpenAI } from 'openai'
 import { NOT_A_CASE, SCAM_TYPES } from './samples'
+import { CLAUDE_DEEP_MODEL, CLAUDE_TRIAGE_MODEL, claudeCheck, claudeJson } from './claude'
+
+// ทางเลือก: AI_PROVIDER=claude ใช้ Claude บน Foundry แทน GPT (ดู lib/claude.ts) — ถอดเสียงยังใช้ gpt-4o-transcribe เสมอ
+const USE_CLAUDE = process.env.AI_PROVIDER === 'claude'
+const asSchema = (f: { schema: object }) => f.schema as unknown as Record<string, unknown>
 
 export type Category = 'สแกม' | 'ปกติ' | 'ข้อมูลบิดเบือน'
 
@@ -84,7 +89,8 @@ const TRIAGE_PROMPT = `คุณคือผู้ช่วยคัดกรอ
 - โอนเงินเพื่อทำงาน = ชวนทำงานออนไลน์หรือพาร์ทไทม์ (กดไลก์ รีวิว ดูคลิป ทำภารกิจ) จ่ายค่าตอบแทนเล็กน้อยก่อนให้ตายใจ แล้วให้โอนเงินสำรอง เงินมัดจำ หรือเติมเงินเพื่อรับงานหรือปลดล็อกค่าคอม
 - หลอกให้กู้เงิน = อ้างปล่อยเงินกู้ อนุมัติง่าย แล้วเก็บค่าธรรมเนียม ค่าเปิดวงเงิน หรือค่ามัดจำก่อนปล่อยกู้
 - หลอกลงทุนผ่านระบบคอมพิวเตอร์ = ชวนลงทุนหุ้น ทอง ฟอเร็กซ์ หรือกองทุน ผ่านแอปหรือเว็บ การันตีผลตอบแทนสูง
-- หลอกให้รักแล้วโอนเงิน = คนที่ทำตัวเป็นแฟนหรือคนรักที่รู้จักทางออนไลน์ ขอเงินด้วยเหตุผลใดก็ตาม (ค่าภาษีของขวัญ ค่ารักษา ค่าตั๋ว)
+- โอนเงินเพื่อรับรางวัล = แจ้งว่าได้รางวัล ของรางวัล หรือสิทธิพิเศษ แล้วให้จ่ายค่าภาษี ค่าส่ง หรือค่าธรรมเนียมก่อนรับ
+- หลอกให้รักแล้วโอนเงิน =คนที่ทำตัวเป็นแฟนหรือคนรักที่รู้จักทางออนไลน์ ขอเงินด้วยเหตุผลใดก็ตาม (ค่าภาษีของขวัญ ค่ารักษา ค่าตั๋ว)
 - ติดตั้งโปรแกรมควบคุมเครื่อง = หลอกให้โหลดแอปหรือกดอนุญาตให้ควบคุมมือถือ
 - กระทำต่อระบบหรือข้อมูลคอมพิวเตอร์ = หลอกเอารหัสผ่าน OTP หรือยึดบัญชี
 - ลงทุนตาม พ.ร.ก.กู้ยืมเงินฯ (แชร์ลูกโซ่) = รายได้มาจากการชวนสมาชิกใหม่ ถ้าไม่มีการชวนคนอื่นเข้าร่วม ไม่ใช่ประเภทนี้
@@ -132,7 +138,8 @@ export async function checkKey(): Promise<ApiError | 'ok'> {
   if (health && Date.now() - health.at < 60_000) return health.result
   let result: ApiError | 'ok' = 'ok'
   try {
-    await getClient().models.list()
+    if (USE_CLAUDE) await claudeCheck()
+    else await getClient().models.list()
   } catch (e) {
     result = errorCode(e)
   }
@@ -141,6 +148,9 @@ export async function checkKey(): Promise<ApiError | 'ok'> {
 }
 
 async function triage(text: string): Promise<Triage> {
+  if (USE_CLAUDE) {
+    return claudeJson<Triage>({ model: CLAUDE_TRIAGE_MODEL, system: TRIAGE_PROMPT, text, schema: asSchema(TRIAGE_FORMAT), effort: 'low' })
+  }
   const r = await getClient().responses.create({
     model: TRIAGE_MODEL,
     instructions: TRIAGE_PROMPT,
@@ -153,6 +163,9 @@ async function triage(text: string): Promise<Triage> {
 }
 
 async function analyzeDetail(text: string): Promise<Detail> {
+  if (USE_CLAUDE) {
+    return claudeJson<Detail>({ model: CLAUDE_DEEP_MODEL, system: DETAIL_PROMPT, text, schema: asSchema(DETAIL_FORMAT), effort: 'medium' })
+  }
   const r = await getClient().responses.create({
     model: DEEP_MODEL,
     instructions: DETAIL_PROMPT,
@@ -206,6 +219,20 @@ const SCREEN_PROMPT = `ภาพนี้คือภาพแคปหน้า
 
 // dataUrl = "data:image/jpeg;base64,..." ที่ย่อขนาดจากฝั่งเบราว์เซอร์แล้ว
 export async function readScreenshot(dataUrl: string): Promise<string | null> {
+  if (USE_CLAUDE) {
+    const [head, base64] = dataUrl.split(',', 2)
+    const mediaType = head.slice(5, head.indexOf(';')) as 'image/jpeg' | 'image/png' | 'image/webp'
+    const out = await claudeJson<{ readable: boolean; source: string; lines: string[] }>({
+      model: process.env.CLAUDE_VISION_MODEL || CLAUDE_TRIAGE_MODEL,
+      system: SCREEN_PROMPT,
+      image: { mediaType, base64 },
+      text: 'ถอดข้อความจากภาพนี้',
+      schema: asSchema(SCREEN_FORMAT),
+      effort: 'low',
+    })
+    if (!out.readable || !out.lines.length) return null
+    return `[แคปหน้าจอ ${out.source}]\n` + out.lines.join('\n')
+  }
   const r = await getClient().responses.create({
     model: process.env.VISION_MODEL || TRIAGE_MODEL,
     input: [

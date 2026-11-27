@@ -76,7 +76,7 @@ flowchart LR
 | UI | **React 19** + CSS ล้วน (`app/globals.css`) | ไม่ใช้ UI library ให้อ่านโค้ดเข้าใจง่าย และไฟล์เล็ก |
 | ฟอนต์ | **Anuphan** ผ่าน `next/font/google` | ฟอนต์ไทยไม่มีหัว ดูทันสมัย next/font เก็บไฟล์ฟอนต์ไว้ในแอปตอน build |
 | เรียกโมเดล | **openai** SDK 7 (Responses API) | Microsoft Foundry รองรับ endpoint แบบ OpenAI v1 ใช้ SDK ตัวเดียวกับ OpenAI ได้เลย |
-| โมเดล | **Microsoft Foundry**: `gpt-5.4-mini`, `gpt-5.5`, `gpt-4o-transcribe` | ข้อมูลอยู่ใน Azure, คิดเงินตามใช้, ตั้งงบและปิด key ได้ |
+| โมเดล | **Microsoft Foundry**: `gpt-5.4-mini`, `gpt-5.5`, `gpt-4o-transcribe` · ทางเลือก Claude ผ่าน `@anthropic-ai/foundry-sdk` | ข้อมูลอยู่ใน Azure, คิดเงินตามใช้, ตั้งงบและปิด key ได้ |
 | ตรวจที่มาภาพ | **@contentauth/c2pa-web** 0.17 (WebAssembly) | ไลบรารีทางการของ Content Authenticity Initiative รันในเบราว์เซอร์ ภาพไม่ต้องออกจากเครื่อง |
 | แอปมือถือ | **PWA** (`app/manifest.ts`, `public/sw.js`) | เว็บเดียวติดตั้งลงมือถือได้ ไม่ต้องเขียนแอป Android/iOS แยก |
 | Hosting | **Azure App Service** (Linux, Node 22) | รัน `server.js` ของ Next.js แบบ standalone ได้ตรง ๆ มี HTTPS ให้ (ไมค์ต้องใช้ HTTPS) |
@@ -111,6 +111,7 @@ flowchart LR
 webapp/
 ├── lib/
 │   ├── scam.ts              🧠 หัวใจของแอป: prompt, JSON schema, เรียกโมเดล, ถอดเสียง, บัญชีดำโดเมน (server เท่านั้น)
+│   ├── claude.ts            🔀 ทางเลือก: เรียก Claude บน Foundry เมื่อ AI_PROVIDER=claude (server เท่านั้น)
 │   ├── c2pa.ts              🔏 อ่าน Content Credentials ของภาพ (เบราว์เซอร์เท่านั้น)
 │   ├── samples.ts           🗂️ 14 ประเภทคดี, จำนวนคดี, ข้อความ/ภาพ/คลิปตัวอย่าง
 │   └── icons.ts             🎨 icon pack ต้นฉบับ (npm run icons → design/icons/)
@@ -250,6 +251,7 @@ client ??= new OpenAI({
 | `DEEP_MODEL` | `gpt-5.5` | ชื่อ deployment ด่านวิเคราะห์ละเอียด |
 | `VISION_MODEL` | ใช้ `TRIAGE_MODEL` | ชื่อ deployment ที่อ่านภาพ |
 | `TRANSCRIBE_MODEL` | `gpt-4o-transcribe` | ชื่อ deployment ถอดเสียง |
+| `AI_PROVIDER` | (ว่าง = GPT) | ตั้งเป็น `claude` เพื่อใช้ Claude แทน GPT ดู [ข้อ 6.9](#69-ทางเลือก-ใช้-claude-บน-microsoft-foundry-แทน-gpt) |
 
 ### 6.2 สองด่าน: ถูกก่อน แพงทีหลัง
 
@@ -366,6 +368,39 @@ export function errorCode(e: unknown): ApiError {
 - **`/api/health`** เรียกตอนเปิดหน้าเว็บ ใช้ `models.list()` ซึ่ง **ไม่ใช้โทเคน ไม่เสียเงิน** และจำผล 60 วินาที ผู้ใช้จึงรู้ทันทีว่า key เสีย ไม่ต้องรอกดตรวจ
 - route ทุกตัว `console.error` แค่ชนิดของ error **ไม่ log ข้อความ ภาพ หรือเสียงของผู้ใช้**
 - ตรวจ input ก่อนเรียกโมเดลเสมอ: ข้อความว่าง (400), ยาวเกิน (413), ชนิดไฟล์ไม่รองรับ (415) — กันเสียเงินกับ request ที่ไม่มีทางสำเร็จ
+
+### 6.9 ทางเลือก: ใช้ Claude บน Microsoft Foundry แทน GPT
+
+ตั้ง `AI_PROVIDER=claude` ใน `.env.local` แล้วแอปจะใช้ Claude ผ่าน SDK ทางการ [`@anthropic-ai/foundry-sdk`](https://www.npmjs.com/package/@anthropic-ai/foundry-sdk) (โค้ดใน [`lib/claude.ts`](lib/claude.ts))
+ด้วย prompt และ JSON schema ชุดเดียวกับฝั่ง GPT ผ่าน structured outputs (`output_config.format`) — หน้าตาแอปและรูปผลลัพธ์เหมือนเดิมทุกอย่าง
+ไม่ตั้ง (หรือตั้งค่าอื่น) = ใช้ GPT ตามเดิม
+
+| งาน | GPT (ค่าเริ่มต้น) | Claude (`AI_PROVIDER=claude`) |
+|---|---|---|
+| คัดกรอง + อ่านแคปหน้าจอ | `gpt-5.4-mini` | `claude-haiku-5-5` (`CLAUDE_TRIAGE_MODEL`) |
+| วิเคราะห์ละเอียด | `gpt-5.5` | `claude-opus-5-5` (`CLAUDE_DEEP_MODEL`) |
+| ถอดเสียง | `gpt-4o-transcribe` | `gpt-4o-transcribe` (Claude ไม่มีโมเดลแปลงเสียงเป็นข้อความ) |
+
+> [!WARNING]
+> **Claude บน Foundry ใช้กับบัญชี Free Trial / Student ไม่ได้** (โควตา Claude เป็น 0) ต้องเป็น subscription แบบ **pay-as-you-go**
+> คิดเงินผ่าน Microsoft Marketplace ตามราคา API ปกติ และ deploy ได้เฉพาะบาง region (เช่น East US 2, Sweden Central)
+
+**ตั้งค่า**
+
+1. ใน Foundry resource (region ที่มี Claude) deploy `claude-haiku-5-5`, `claude-opus-5-5` และ `claude-opus-4-8` (ตัวสำรอง) ตั้งชื่อ deployment ตรงกับชื่อโมเดล
+2. ใน `.env.local` เพิ่ม `AI_PROVIDER=claude` — ใช้ `FOUNDRY_API_KEY` / `FOUNDRY_RESOURCE` เดิมได้ถ้าอยู่ resource เดียวกัน ถ้าแยก resource ใช้ `CLAUDE_FOUNDRY_RESOURCE` / `CLAUDE_FOUNDRY_API_KEY`
+3. รัน `npm run dev` ใหม่ (env อ่านตอนเริ่ม) ถอดเสียงยังต้องมี `gpt-4o-transcribe` ถ้าจะใช้ไฟล์เสียงหรือฟังสาย
+
+**รายละเอียดในโค้ด**
+
+- `AnthropicFoundry({ apiKey, resource })` → `https://<resource>.services.ai.azure.com/anthropic/` และ `model` คือชื่อ deployment
+- `lib/scam.ts` เช็ก `AI_PROVIDER` ที่ต้นฟังก์ชัน `triage`, `analyzeDetail`, `readScreenshot` และ `checkKey` แล้วเรียก `claudeJson()` แทน — โค้ดส่วนอื่นไม่ต้องรู้ว่าใช้โมเดลไหน
+- คัดกรองใช้ effort `low` วิเคราะห์ละเอียดใช้ `medium` (thinking แบบ adaptive เป็นค่าเริ่มต้นของ Claude รุ่นใหม่)
+- ภาพแคปหน้าจอส่งเป็น content block `image` แบบ base64
+- ถ้าโมเดลปฏิเสธคำขอ (`stop_reason: "refusal"`) SDK ลองซ้ำบน `CLAUDE_FALLBACK_MODEL` (ค่าเริ่มต้น `claude-opus-4-8` — ต้อง deploy ไว้ด้วย หรือตั้งเป็นค่าว่างเพื่อปิด)
+- health check ใช้การนับโทเคน (`countTokens`) แทนรายชื่อโมเดล เพราะ Models API ไม่มีบน Foundry — ไม่สร้างคำตอบ ไม่เสียค่าโมเดล
+
+> รูปแบบนี้เอาไปใช้สลับผู้ให้บริการโมเดลอื่นได้: ให้ prompt และ schema เป็นของกลาง แล้วแยกการเรียก SDK ของแต่ละเจ้าไว้คนละไฟล์
 
 ---
 
@@ -688,7 +723,7 @@ APP_NAME=scam-check-<ชื่อคุณ> ./deploy-azure.sh
 |---|---|
 | ตรวจอีเมล phishing ขององค์กร | เปลี่ยน `CASES` และ `TRIAGE_PROMPT` ให้เป็นหมวดของ phishing |
 | LINE bot ที่ผู้ใช้ส่งต่อข้อความมาให้ตรวจ | เพิ่ม route `app/api/line-webhook/route.ts` ที่รับ webhook แล้วเรียก `checkMessage()` ตัวเดิม |
-| เปลี่ยนเป็นโมเดลอื่น เช่น Claude บน Microsoft Foundry | ดู branch [`feature/claude-foundry`](https://github.com/codediva-train/scamalert/tree/feature/claude-foundry) — เพิ่ม `lib/claude.ts` และสลับด้วย `AI_PROVIDER=claude` |
+| เปลี่ยนเป็นโมเดลอื่น เช่น Claude บน Microsoft Foundry | มีให้แล้ว: ตั้ง `AI_PROVIDER=claude` ([ข้อ 6.9](#69-ทางเลือก-ใช้-claude-บน-microsoft-foundry-แทน-gpt)) — เจ้าอื่นทำตามแบบ `lib/claude.ts` |
 | ภาษาอื่น (ลาว, เมียนมา, อังกฤษ) | แปล prompt และข้อความบนหน้าจอ, ส่ง `language` ที่ตรงให้ `transcribe()` |
 | ตรวจลิงก์แบบจริงจัง | ต่อ API ตรวจ URL (เช่น Google Safe Browsing) ใน `findDomains()` |
 | ส่งรายงานให้หน่วยงาน (โดยผู้ใช้ยินยอม) | ปุ่มใน sheet ผลตรวจ + route ใหม่ที่บันทึกลงฐานข้อมูล พร้อมนโยบาย PDPA |

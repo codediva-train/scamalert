@@ -42,6 +42,7 @@ az webapp config appsettings set -g "$RG" -n "$APP_NAME" -o none --settings \
   TRIAGE_MODEL="${TRIAGE_MODEL:-gpt-5.4-mini}" \
   DEEP_MODEL="${DEEP_MODEL:-gpt-5.5}" \
   TRANSCRIBE_MODEL="${TRANSCRIBE_MODEL:-gpt-4o-transcribe}" \
+  AI_PROVIDER="${AI_PROVIDER:-}" \
   SCM_DO_BUILD_DURING_DEPLOYMENT=false
 
 echo "== อัปโหลด"
