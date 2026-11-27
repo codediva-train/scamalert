@@ -36,6 +36,13 @@ export const SCREEN_SAMPLES = [
   { src: '/samples/screens/06-chat-romance.webp', label: 'หลอกให้รัก', where: 'แชต' },
 ]
 
+// ภาพจาก AI สำหรับสอน C2PA: เซ็นด้วยใบรับรองทดสอบของแล็บ (ไม่อยู่ในรายชื่อที่เชื่อถือได้) ดู scripts/make-c2pa-samples.mjs
+export const C2PA_SAMPLES = [
+  { src: '/samples/c2pa/01-ai-signed.jpg', label: 'ภาพ AI มี C2PA', where: 'ควรเจอ "สร้างด้วย AI"' },
+  { src: '/samples/c2pa/02-ai-stripped.jpg', label: 'ภาพเดียวกัน ลบ C2PA', where: 'เหมือนส่งผ่านแชต' },
+  { src: '/samples/c2pa/03-ai-tampered.jpg', label: 'แก้ภาพหลังเซ็น', where: 'ลายเซ็นใช้ไม่ได้' },
+]
+
 // คลิปเสียงจำลอง สร้างด้วย SparkThai Thai TTS (เสียงอ้างอิง Google FLEURS th_th, CC BY 4.0) — ไม่ใช่เสียงคนจริง
 export const AUDIO_SAMPLES = [
   { src: '/samples/audio/01-police.m4a', label: 'อ้างตำรวจกองปราบ', desc: 'บัญชีพัวพันคดี ให้โอนเงินไปตรวจสอบ', scam: true },

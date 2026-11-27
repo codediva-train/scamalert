@@ -2,7 +2,9 @@
   "name": "scam-check-webapp",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-c2pa-wasm.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-c2pa-wasm.mjs",
     "build": "next build",
     "start": "node .next/standalone/server.js",
     "icons": "node scripts/export-icons.mts"
@@ -11,6 +13,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@contentauth/c2pa-web": "0.17.2",
     "next": "16.4.6",
     "openai": "7.65.0",
     "react": "19.3.1",

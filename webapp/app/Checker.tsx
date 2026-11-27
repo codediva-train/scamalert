@@ -5,6 +5,7 @@ import LiveListen from './LiveListen'
 import Icon from './Icon'
 import TypesGallery from './TypesGallery'
 import { CASES, NOT_A_CASE, OTHER_SAMPLES, caseImage } from '@/lib/samples'
+import { readC2pa, type C2paInfo } from '@/lib/c2pa'
 
 const ERRORS: Record<string, string> = {
   too_long: 'ข้อความยาวเกินไป (ไม่เกิน 4,000 ตัวอักษร)',
@@ -37,6 +38,7 @@ export default function Checker({ initialText }: { initialText: string }) {
   const [toast, setToast] = useState('')
   const [keyAlert, setKeyAlert] = useState<'' | 'auth' | 'not_configured'>('')
   const [result, setResult] = useState<CheckResult | null>(null)
+  const [c2pa, setC2pa] = useState<C2paInfo | null>(null) // ผลตรวจที่มาของภาพ เฉพาะตอนตรวจจากภาพ
   const [sheetOpen, setSheetOpen] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [drag, setDrag] = useState(0)
@@ -120,7 +122,7 @@ export default function Checker({ initialText }: { initialText: string }) {
     else setSheetOpen(false)
   }
 
-  async function check(t = text) {
+  async function check(t = text, c2paInfo: C2paInfo | null = null) {
     if (!t.trim()) return
     inputRef.current?.blur() // เก็บคีย์บอร์ดลง
     setBusy('กำลังตรวจ…')
@@ -135,6 +137,7 @@ export default function Checker({ initialText }: { initialText: string }) {
         showError(data.error)
         return
       }
+      setC2pa(c2paInfo)
       setResult(data)
       navigator.vibrate?.(data.category === 'ปกติ' ? 15 : [30, 60, 30])
       openSheet()
@@ -172,6 +175,8 @@ export default function Checker({ initialText }: { initialText: string }) {
     if (imageRef.current) imageRef.current.value = ''
     if (!file) return
     setBusy('กำลังอ่านรูป…')
+    // ตรวจ C2PA จากไฟล์ต้นฉบับ (การย่อภาพด้วย canvas จะลบข้อมูล C2PA ทิ้ง) ทำในเครื่อง ไปพร้อมกับการอ่านข้อความ
+    const c2paPromise = readC2pa(file).catch(() => null)
     try {
       const small = await shrinkImage(file)
       if (!small) return setToast(ERRORS.bad_image)
@@ -180,9 +185,16 @@ export default function Checker({ initialText }: { initialText: string }) {
       const res = await fetch('/api/read-image', { method: 'POST', body: fd })
       const data = await res.json()
       if (!res.ok) return showError(data.error)
-      if (!data.text) return setToast('อ่านข้อความในภาพไม่ได้ ลองแคปให้เห็นข้อความชัด ๆ')
+      if (!data.text) {
+        // ไม่มีข้อความให้ตรวจ แต่ยังบอกที่มาของภาพได้
+        const info = await c2paPromise
+        if (!info) return setToast('อ่านข้อความในภาพไม่ได้ ลองแคปให้เห็นข้อความชัด ๆ')
+        setResult(null)
+        setC2pa(info)
+        return openSheet()
+      }
       setText(data.text)
-      await check(data.text)
+      await check(data.text, await c2paPromise)
     } catch {
       setToast(ERRORS.network)
     } finally {
@@ -424,6 +436,8 @@ export default function Checker({ initialText }: { initialText: string }) {
               )}
             </div>
 
+            {c2pa && <C2paPanel info={c2pa} />}
+
             {result.warning_signs.length > 0 && (
               <Group title="สัญญาณที่เห็น">
                 {result.warning_signs.map((s, i) => (
@@ -499,6 +513,23 @@ export default function Checker({ initialText }: { initialText: string }) {
             </div>
           </div>
         )}
+        {!result && c2pa && (
+          <div className="sheet-body">
+            <div className="verdict">
+              <span className="verdict-icon c2pa-icon">
+                <Icon name="privacy" size={34} />
+              </span>
+              <h2>ที่มาของภาพ</h2>
+              <p>ไม่พบข้อความในภาพให้ตรวจ จึงแสดงเฉพาะข้อมูล C2PA</p>
+            </div>
+            <C2paPanel info={c2pa} />
+            <div className="sheet-actions">
+              <button type="button" className="plain" onClick={startOver}>
+                ตรวจภาพอื่น
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     </>
   )
@@ -519,6 +550,48 @@ async function shrinkImage(file: File): Promise<Blob | null> {
   } catch {
     return null // เบราว์เซอร์เปิดรูปชนิดนี้ไม่ได้ (เช่น HEIC บนเครื่องที่ไม่รองรับ)
   }
+}
+
+// ที่มาของภาพตามมาตรฐาน C2PA (Content Credentials)
+function C2paPanel({ info }: { info: C2paInfo }) {
+  if (info.status === 'none') {
+    return (
+      <Group title="ที่มาของภาพ (C2PA)">
+        <li className="item c2pa">
+          <b>⚪ ไม่พบ Content Credentials</b>
+          <small>แคปหน้าจอ และภาพที่ส่งผ่าน LINE, Facebook หรือ TikTok มักถูกลบข้อมูลนี้ทิ้ง — ไม่พบ ไม่ได้แปลว่าเป็นภาพจริง</small>
+        </li>
+      </Group>
+    )
+  }
+  const tone = info.tampered ? 'bad' : info.ai ? 'warn' : 'ok'
+  return (
+    <Group title="ที่มาของภาพ (C2PA)">
+      <li className={`item c2pa ${tone}`}>
+        <b>{info.tampered ? '⚠️ ภาพถูกแก้หลังเซ็น ข้อมูลที่มาเชื่อไม่ได้' : info.ai ? '🤖 ภาพนี้ระบุว่าสร้างด้วย AI' : '🔏 มี Content Credentials'}</b>
+        {info.sourceType && <small>ประเภทที่มา: {info.sourceType}</small>}
+      </li>
+      {info.tool && (
+        <li className="item split">
+          <span>เครื่องมือ</span>
+          <code>{info.tool}</code>
+        </li>
+      )}
+      {info.signer && (
+        <li className="item split">
+          <span>ผู้เซ็น</span>
+          <code>{info.signer}</code>
+        </li>
+      )}
+      <li className="item">
+        <small>
+          {info.trusted
+            ? 'ผู้เซ็นอยู่ในรายชื่อที่เชื่อถือได้'
+            : 'ผู้เซ็นไม่อยู่ในรายชื่อที่เชื่อถือได้ของแอปนี้ (เช่น ใบรับรองทดสอบของแล็บ) — ดูชื่อผู้เซ็นประกอบ'}
+        </small>
+      </li>
+    </Group>
+  )
 }
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {

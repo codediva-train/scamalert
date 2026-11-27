@@ -7,3 +7,4 @@ next-env.d.ts
 # repo ignores .env.* and the global gitignore ignores lockfiles — these two must be committed
 !.env.example
 !package-lock.json
+public/c2pa/
