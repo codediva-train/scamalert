@@ -28,6 +28,7 @@ const VERDICT: Record<Category, { tone: 'bad' | 'warn' | 'ok'; title: string; su
 
 const SHEET_HASH = '#result'
 const TYPES_HASH = '#types'
+const SAMPLE_DRAG = 'application/x-scamalert-sample' // ชนิดข้อมูลตอนลากภาพตัวอย่าง (ค่า = path ของภาพ)
 
 export default function Checker({ initialText }: { initialText: string }) {
   const [text, setText] = useState(initialText)
@@ -44,6 +45,15 @@ export default function Checker({ initialText }: { initialText: string }) {
   const [drag, setDrag] = useState(0)
   const dragStart = useRef<number | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [zoom, setZoom] = useState<{ src: string; label: string } | null>(null) // ภาพตัวอย่างที่เปิดดูเต็มจอ
+  const [drop, setDrop] = useState<'' | 'hint' | 'over'>('') // ปุ่มแคปหน้าจอ: กำลังลากภาพมา / ลากมาอยู่บนปุ่มแล้ว
+
+  useEffect(() => {
+    if (!zoom) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setZoom(null)
+    addEventListener('keydown', onKey)
+    return () => removeEventListener('keydown', onKey)
+  }, [zoom])
 
   // เปิดหน้าเว็บแล้วเช็ก key ทันที (ไม่ใช้โทเคน) ถ้าใช้ไม่ได้ เด้ง popup บอกวิธีแก้ ไม่ต้องรอให้ผู้ใช้กดตรวจก่อน
   useEffect(() => {
@@ -115,6 +125,30 @@ export default function Checker({ initialText }: { initialText: string }) {
     } catch {
       setToast(ERRORS.network)
     }
+  }
+
+  // ลากภาพตัวอย่างจากแผงขวา หรือไฟล์ภาพจากเครื่อง มาวางที่ปุ่มแคปหน้าจอ = ตรวจภาพนั้น
+  const dropProps = {
+    onDragOver: (e: React.DragEvent) => {
+      const t = e.dataTransfer.types
+      if (busy || !(t.includes(SAMPLE_DRAG) || t.includes('Files'))) return
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'copy'
+      setDrop('over')
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      if (e.currentTarget.contains(e.relatedTarget as Node)) return
+      setDrop((d) => (d === 'over' ? 'hint' : d))
+    },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault()
+      setDrop('')
+      const src = e.dataTransfer.getData(SAMPLE_DRAG)
+      if (src) return pickSampleFile(src, 'image')
+      const file = [...e.dataTransfer.files].find((f) => f.type.startsWith('image/'))
+      if (file) uploadImage(file)
+      else setToast(ERRORS.bad_image)
+    },
   }
 
   function closeSheet() {
@@ -320,7 +354,13 @@ export default function Checker({ initialText }: { initialText: string }) {
               <small>ผ่านอีกเครื่อง</small>
             </span>
           </button>
-          <button type="button" className="tile" onClick={() => imageRef.current?.click()} disabled={!!busy}>
+          <button
+            type="button"
+            className={drop ? `tile drop-${drop}` : 'tile'}
+            onClick={() => imageRef.current?.click()}
+            disabled={!!busy}
+            {...dropProps}
+          >
             <span className="row-icon line-ic">
               <Icon name="chat-screenshot" size={20} />
             </span>
@@ -348,23 +388,6 @@ export default function Checker({ initialText }: { initialText: string }) {
         />
         <input ref={imageRef} type="file" accept="image/*" hidden onChange={(e) => uploadImage(e.target.files?.[0])} />
 
-        {/* ภาพหน้าจอตัวอย่าง แตะแล้วตรวจเหมือนอัปโหลดเอง ไม่ต้องหาไฟล์ในเครื่อง */}
-        <div className="shots" role="list" aria-label="ภาพหน้าจอตัวอย่าง">
-          {[...SCREEN_SAMPLES, ...C2PA_SAMPLES].map((s) => (
-            <button
-              key={s.src}
-              type="button"
-              role="listitem"
-              className="shot"
-              onClick={() => pickSampleFile(s.src, 'image')}
-              disabled={!!busy}
-            >
-              <img src={s.src} alt="" loading="lazy" />
-              <small>{s.label}</small>
-            </button>
-          ))}
-        </div>
-
         <p className="fine">
           AI อาจผิดได้ · ไม่เก็บข้อความหรือเสียงที่ตรวจ ·{' '}
           <span className="ver">
@@ -373,6 +396,49 @@ export default function Checker({ initialText }: { initialText: string }) {
           </span>
         </p>
       </main>
+
+      {/* ภาพหน้าจอตัวอย่าง อยู่นอกจอแอป (เฉพาะจอกว้าง — มือถือเปิดจาก "ตัวอย่างทั้งหมด")
+          กดกลางภาพ = ตรวจภาพนั้น · ไอคอนมุมขวาบน = ดูเต็มจอ · ลากไปวางที่ปุ่มแคปหน้าจอก็ได้ */}
+      <aside className="side-samples" aria-label="ภาพหน้าจอตัวอย่าง">
+        <h2>ภาพตัวอย่าง</h2>
+        <p>กดที่ภาพเพื่อตรวจ หรือลากไปวางที่ปุ่ม “แคปหน้าจอ”</p>
+        <div className="side-grid">
+          {[...SCREEN_SAMPLES, ...C2PA_SAMPLES].map((s) => (
+            <div key={s.src} className="side-shot">
+              <button
+                type="button"
+                className="side-pick"
+                onClick={() => pickSampleFile(s.src, 'image')}
+                disabled={!!busy}
+                draggable={!busy}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(SAMPLE_DRAG, s.src)
+                  e.dataTransfer.effectAllowed = 'copy'
+                  setDrop('hint')
+                }}
+                onDragEnd={() => setDrop('')}
+                title={`ตรวจภาพ: ${s.label}`}
+              >
+                <img src={s.src} alt="" loading="lazy" draggable={false} />
+                <small>{s.label}</small>
+              </button>
+              <button type="button" className="side-zoom" onClick={() => setZoom(s)} aria-label={`ดู ${s.label} เต็มจอ`}>
+                <Icon name="expand" size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      {zoom && (
+        <div className="zoom-scrim" onClick={() => setZoom(null)} role="dialog" aria-label={zoom.label}>
+          <img src={zoom.src} alt={zoom.label} />
+          <span className="zoom-label">{zoom.label}</span>
+          <button type="button" className="zoom-close" onClick={() => setZoom(null)} aria-label="ปิด">
+            <Icon name="close" size={22} />
+          </button>
+        </div>
+      )}
 
       <div className="action-bar">
         <button type="button" className="icon-btn" onClick={paste} aria-label="วางจากคลิปบอร์ด">

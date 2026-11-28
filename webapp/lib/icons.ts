@@ -30,6 +30,7 @@ export const ICONS = {
   privacy: `<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2"/>`,
   // ปุ่มทั่วไป
   close: `<path d="M18 6 6 18M6 6l12 12"/>`,
+  expand: `<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>`,
   'chevron-right': `<path d="m9 18 6-6-6-6"/>`,
   check: `<path d="M20 6 9 17l-5-5"/>`,
   stop: `<rect x="6" y="6" width="12" height="12" rx="2.5"/>`,

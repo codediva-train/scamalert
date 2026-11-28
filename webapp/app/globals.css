@@ -253,52 +253,103 @@ a { text-decoration: none; }
 .tile-text b { font-size: 14px; }
 .tile-text small { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* แถบภาพหน้าจอตัวอย่าง เลื่อนแนวนอนเหมือน chips */
-.shots {
-  flex: none;
-  display: flex;
-  gap: 10px;
-  margin: 0 -16px;
-  padding: 0 16px 2px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
+/* ปุ่มแคปหน้าจอเป็นที่วางภาพ (ลากภาพตัวอย่างหรือไฟล์มาวาง) */
+.tile.drop-hint { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.tile.drop-over { outline: 3px solid var(--accent); outline-offset: 2px; transform: scale(1.04); }
+
+/* ภาพหน้าจอตัวอย่าง: แผงด้านขวานอกจอแอป เฉพาะจอกว้าง (มือถือเปิดจาก "ตัวอย่างทั้งหมด") */
+.side-samples { display: none; }
+@media (min-width: 1000px) and (min-height: 560px) {
+  .side-samples {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 76px;
+    bottom: calc(var(--bar-h) + 16px);
+    left: calc(50% + 280px + 24px);
+    width: min(330px, calc(50% - 280px - 48px));
+    overflow-y: auto;
+    z-index: 5;
+  }
 }
-.shots::-webkit-scrollbar { display: none; }
-.shot {
-  flex: none;
-  scroll-snap-align: start;
+.side-samples h2 { margin: 0; font-size: 16px; }
+.side-samples > p { margin: 2px 0 10px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.side-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.side-shot { position: relative; }
+.side-pick {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 62px;
+  gap: 4px;
+  width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
+  text-align: left;
+  cursor: grab;
 }
-.shot img {
-  width: 62px;
-  height: 62px;
+.side-pick img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
   object-fit: cover;
   object-position: top;
   border-radius: 12px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
   display: block;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.shot small { max-width: 100%; font-size: 11px; line-height: 1.3; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.shot:active { transform: scale(0.95); }
-.shot:disabled { opacity: 0.5; }
-/* จอเตี้ย (iPhone SE): ภาพเล็กลงและไม่มีชื่อ ให้ช่องข้อความยังสูงพอ */
-@media (max-height: 700px) {
-  .shot { width: 44px; }
-  .shot img { width: 44px; height: 44px; border-radius: 10px; }
-  .shot small { display: none; }
+.side-pick:hover img { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22); }
+.side-pick:active { cursor: grabbing; }
+.side-pick:disabled { opacity: 0.5; cursor: default; }
+.side-pick small { font-size: 12px; line-height: 1.3; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-zoom {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.side-zoom:hover { background: rgba(0, 0, 0, 0.8); }
+
+/* ดูภาพตัวอย่างเต็มจอ */
+.zoom-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.85);
+  cursor: zoom-out;
+}
+.zoom-scrim img { max-width: 100%; max-height: calc(100dvh - 90px); object-fit: contain; border-radius: 12px; }
+.zoom-label { color: #fff; font-size: 15px; }
+.zoom-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
 }
 
 .fine { flex: none; margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
 /* คีย์บอร์ดเปิด (จอเหลือเตี้ยมาก): เหลือแค่ช่องข้อความ ตัวอย่าง และปุ่มตรวจ */
-@media (max-height: 520px) { .tiles, .shots, .fine { display: none; } }
+@media (max-height: 520px) { .tiles, .fine { display: none; } }
 
 /* ---- แถบปุ่มล่าง ---- */
 .action-bar {
